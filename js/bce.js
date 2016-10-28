@@ -604,8 +604,8 @@ var bce = {
                             }
                             $.each(inputs_to_sign, function(k)
                             {
-                                tx.sign(0, keys1, bitcoin.Script.fromHex(redeem));
-                                tx.sign(0, keys2, bitcoin.Script.fromHex(redeem));
+                                tx.sign(k, keys1, bitcoin.Script.fromHex(redeem));
+                                tx.sign(k, keys2, bitcoin.Script.fromHex(redeem));
                             });
                             var built = tx.build();
                             var raw = built.toHex();
@@ -643,6 +643,7 @@ var bce = {
                 e.preventDefault();
                 var form = $(this).parent().parent().parent();
                 var chain = $(form).find('select#bce-chain').val();
+                var blockchain = $.fn.blockstrap.settings.blockchains[chain].blockchain;
                 var address = $(form).find('input#bce-ms-address').val();
                 if(chain && address)
                 {
