@@ -383,8 +383,9 @@ var bce = {
                 {
                     var this_address = keys.getAddress().toString();
                     var priv_key = keys.toString();
-                    var wif = keys.privKey.toWIF(network);
+                    var wif = 'N/A';
                     var pub_key = keys.neutered().toString();
+                    if(typeof keys.privKey != 'undefined') wif = keys.privKey.toWIF(network); 
                     if(pub_key == priv_key) priv_key = 'N/A';
                     $('form#bce-child-key input#bce-extended-address').val(this_address);
                     $('form#bce-child-key input#bce-extended-private').val(priv_key);
