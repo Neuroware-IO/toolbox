@@ -550,11 +550,13 @@ var bce = {
                     var checked = 0;
                     var inputs = [];
                     var outputs = [];
+                    var input_index = 0;
+                    var inputs_to_sign = [];
                     var amount_needed = parseInt((parseFloat(to_amount) * 100000000)) + fee;
                     var amount_used = 0;
                     var keys1 = bitcoin.ECKey.fromWIF(priv1);
                     var keys2 = bitcoin.ECKey.fromWIF(priv2);
-                    tx = new bitcoin.TransactionBuilder();
+                    var tx = new bitcoin.TransactionBuilder();
                     $.fn.blockstrap.api.unspents(address, chain, function(results)
                     {
                         if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
@@ -566,6 +568,8 @@ var bce = {
                                 {
                                     tx.addInput(unspent.txid, unspent.index);
                                     amount_used = amount_used + unspent.value;
+                                    inputs_to_sign.push(input_index);
+                                    input_index++;
                                 }
                             });
                         }
@@ -598,8 +602,11 @@ var bce = {
                                 ]);
                                 tx.addOutput(op_return, 0);
                             }
-                            tx.sign(0, keys1, bitcoin.Script.fromHex(redeem));
-                            tx.sign(0, keys2, bitcoin.Script.fromHex(redeem));
+                            $.each(inputs_to_sign, function(k)
+                            {
+                                tx.sign(0, keys1, bitcoin.Script.fromHex(redeem));
+                                tx.sign(0, keys2, bitcoin.Script.fromHex(redeem));
+                            });
                             var built = tx.build();
                             var raw = built.toHex();
                             if(raw)
@@ -732,10 +739,12 @@ var bce = {
                                     // Construct new TX with change returning to address
                                     var checked = 0;
                                     var inputs = [];
+                                    var input_index = 0;
+                                    var inputs_to_sign = [];
                                     var outputs = [];
                                     var amount_needed = amount + fee;
                                     var amount_used = 0;
-                                    tx = new bitcoin.TransactionBuilder();
+                                    var tx = new bitcoin.TransactionBuilder();
                                     $.each(private_keys, function(key_index)
                                     {
                                         var keys = bitcoin.ECKey.fromWIF(private_keys[key_index]);
@@ -752,6 +761,8 @@ var bce = {
                                                     {
                                                         tx.addInput(unspent.txid, unspent.index);
                                                         amount_used = amount_used + unspent.value;
+                                                        inputs_to_sign.push(input_index);
+                                                        input_index++;
                                                     }
                                                 });
                                             }
@@ -788,7 +799,10 @@ var bce = {
                                                             ]);
                                                             tx.addOutput(op_return, 0);
                                                         }
-                                                        tx.sign(key_index, keys);
+                                                        $.each(inputs_to_sign, function(k)
+                                                        {
+                                                            tx.sign(k, keys);
+                                                        });
                                                         var built = tx.build();
                                                         var raw = built.toHex();
                                                         if(raw)
