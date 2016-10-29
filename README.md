@@ -6,4 +6,4 @@
 
 As part of our early research in understanding the basic foundations of crypto-currency based blockchains, we developed a set of inline tools that work within the browser and do not require any form of server-side interaction or exposure to privacy risks. For those that know how to download and investigate code, we have our [public repository](https://github.com/Neuroware-IO/toolbox), but for those that want to play-around with the technology without looking at code, they can visit our [online toolbox](http://bce.asia/toolbox/). It currently supports the following features:
 
-* Standard Key-Pair Generation (exposing both standard and master extended public and private keys as well as the public address)
+* Key-Pair Generation (exposing both standard and master extended public and private keys as well as the public address)
