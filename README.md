@@ -15,11 +15,11 @@ As part of our early research in understanding the basic foundations of crypto-c
 
 ![BCE Toolbox](assets/img/docs/screenshot.png)
 
-At the moment, we currently have __full_ support the following blockchains:
+At the moment, we currently have __full__ support the following blockchains:
 
 * Dogecoin Testnet
 
-We will be introducing support for the following blockchains soon:
+We will be soon be introducing additional support for the following blockchains:
 
 * Dogecoin
 * Bitcoin
