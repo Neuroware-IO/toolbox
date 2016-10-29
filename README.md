@@ -13,7 +13,7 @@ As part of our early research in understanding the basic foundations of crypto-c
 * __Hierarchical Keys__ - check the depth and index of extended keys and derive new children via paths
 * __Transaction Builder__ - create and view new transactions from API-driven unspents before relaying
 
-[![BCE Toolbox](assets/img/docs/screenshot.png)](http://bce.asia/toolbox/)
+[![BCE.asia/toolbox](assets/img/docs/screenshot.png)](http://bce.asia/toolbox/)
 
 At the moment, we currently have __full__ support the following blockchains:
 
@@ -35,4 +35,4 @@ We will be soon be introducing additional support for the following blockchains:
 
 This blockchain-agnostic support is provided by the [blockstrap](http://blockstrap.com) framework:
 
-[![BCE.asia](assets/img/docs/blockstrap.png)](http://blockstrap.com)
+[![blockstrap.com](assets/img/docs/blockstrap.png)](http://blockstrap.com)
