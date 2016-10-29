@@ -2,7 +2,7 @@
 
 [BCE.asia](http://bce.asia) is a non-profit digitally distributed organization that is using and promoting blockchain governance as a method for collaboration between various business entities and existing community efforts across Southeast Asia. We bridge the technical divide between organizations, national agencies and regulators throughout the region by providing access to our growing repositories of collaborative research. Our sandbox environment not only provides a technical foundation for growth, but also features legal frameworks too.
 
-![BCE.asia](assets/img/docs/bce-malaysian-ambassadors.png)
+[![BCE.asia](assets/img/docs/bce-malaysian-ambassadors.png)](http://bce.asia)
 
 ### The Embassy Toolkit
 
@@ -13,7 +13,7 @@ As part of our early research in understanding the basic foundations of crypto-c
 * __Hierarchical Keys__ - check the depth and index of extended keys and derive new children via paths
 * __Transaction Builder__ - create and view new transactions from API-driven unspents before relaying
 
-![BCE Toolbox](assets/img/docs/screenshot.png)
+[![BCE Toolbox](assets/img/docs/screenshot.png)](http://bce.asia/toolbox/)
 
 At the moment, we currently have __full__ support the following blockchains:
 
@@ -35,4 +35,4 @@ We will be soon be introducing additional support for the following blockchains:
 
 This blockchain-agnostic support is provided by the [blockstrap](http://blockstrap.com) framework:
 
-[![BCE.asia](assets/img/docs/bce-malaysian-ambassadors.png)](http://blockstrap.com)
+[![BCE.asia](assets/img/docs/blockstrap.png)](http://blockstrap.com)
