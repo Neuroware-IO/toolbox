@@ -33,4 +33,6 @@ We will be soon be introducing additional support for the following blockchains:
 * Ethereum Classic
 * Ethereum Classic Testnet
 
-This blockchain-agnostic support is provided by the [blockstrap](http://blockstrap.com) framework
+This blockchain-agnostic support is provided by the [blockstrap](http://blockstrap.com) framework:
+
+[![BCE.asia](assets/img/docs/bce-malaysian-ambassadors.png)](http://blockstrap.com)
