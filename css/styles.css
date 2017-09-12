@@ -26,6 +26,10 @@
     border: 1px solid #CCC;
     padding: 15px;
 }
+.modal-body small,
+.modal-title small {
+    word-wrap: break-word;
+}
 span.alert-block {
     display: block;
     width: 100%;
@@ -80,6 +84,9 @@ form.form-horizontal .form-group .control-label.empty {
     background: #EEE;
     border-radius: 8px 8px 0 0;
     border-bottom: 1px solid #CCC;
+}
+#mission input {
+    text-align: center;
 }
 
 @media (max-width: 768px) { 

@@ -6,23 +6,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
 <link rel='shortcut icon' href='favicon.ico'>
 <title>TX-Toolbox | The BlockChain Embassy of Asia</title>
-<link rel='stylesheet' id='bootstrap-css'  href='assets/css/bootstrap.css' type='text/css' media='all' />
-<link rel='stylesheet' id='font-awesome-css'  href='assets/css/font-awesome.css' type='text/css' media='all' />
-<link rel='stylesheet' id='styles-css'  href='assets/css/styles.css' type='text/css' media='all' />
+<link rel='stylesheet' id='bootstrap-css'  href='../assets/css/bootstrap.css' type='text/css' media='all' />
+<link rel='stylesheet' id='font-awesome-css'  href='../assets/css/font-awesome.css' type='text/css' media='all' />
+<link rel='stylesheet' id='styles-css'  href='../assets/css/styles.css' type='text/css' media='all' />
 <link rel='stylesheet' id='styles-css'  href='css/styles.css' type='text/css' media='all' />
 <link href="https://fonts.googleapis.com/css?family=Pathway+Gothic+One" rel="stylesheet"> 
+
+<meta property="og:locale" content="en_US" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Blockchain Embassy Toolkit" />
+<meta property="og:description" content="Build and send blockchain transactions from your browser!" />
+<meta property="og:url" content="http://bce.asia/toolbox/" />
+<meta property="og:site_name" content="bce.asia" />
+<meta property="og:image" content="http://bce.asia/assets/img/bce-toolbox.png" />    
+    
 </head>
 <body>
 
 <div id="header">
     <div class="container">
         <h1 class="logo">The BlockChain Embassy of Asia</h1>
+        <div id="nav">
+            <a href="../">LEARN MORE</a>
+            <a href="../#ambassadors">AMBASSADORS</a>
+            <a href="../#uses">USE CASES</a>
+            <a href="../#contact">CONTACT EMBASSY</a>
+            <a href="http://flipboard.com/@msmalley/blockchain-embassy-492p8c3cy" target="_blank">NEWS</a>
+        </div>
     </div>
 </div>
     
 <div id="mission">
     <div class="container">
         <h2>build and send blockchain transactions from your browser</h2>
+        <h4>we currently use the <span class="api-provider">XXX</span> api - please note that errors may occur due to rate limits</h4>
+        <div class="row">
+            <div class="col-md-4"></div>
+            <div class="col-md-4">
+                <input class="form-control" id="ad-hoc-api-key" placeholder="optionally add your own personal API key here" autocomplete="off" />
+            </div>
+            <div class="col-md-4"></div>
+        </div>
     </div>
 </div>
     
@@ -45,21 +69,23 @@
                         <div class="form-group">
                             <label for="input-type" class="col-sm-5 control-label">Input Type</label>
                             <div class="col-sm-7">
-                                <select class="form-control" id="input-type" autocomplete="off">
+                                <select class="form-control" id="input-type-1" autocomplete="off">
                                     <option value="private">Private Keys</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="input-01-private" class="col-sm-5 control-label">Private Key 01</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control input-private" id="input-01-private" placeholder="Private key to use?">
+                        <div class="input-wrapper" data-index="1">
+                            <div class="form-group">
+                                <label for="input-private-1" class="col-sm-5 control-label">Private Key 1</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-private" id="input-private-1" placeholder="Private key to use?">
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-5 control-label empty"></label>
                             <div class="col-sm-7">
-                                <a href="#" class="btn btn-success btn-xs pull-right">ANOTHER KEY</a>
+                                <a href="#" class="btn btn-success btn-xs pull-right add-input-key">ANOTHER KEY</a>
                             </div>
                         </div>
                     </div>
@@ -70,15 +96,10 @@
                             <label for="chain" class="col-sm-5 control-label">Blockchain</label>
                             <div class="col-sm-7">
                                 <select class="form-control" id="chain" autocomplete="off">
-                                    <option value="doget">Dogecoin Testnet</option>
                                     <option value="doge">Dogecoin</option>
+                                    <option value="btc">Bitcoin</option>
+                                    <option value="btct">Bitcoin Testnet</option>
                                 </select>
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="amount" class="col-sm-5 control-label">Amount</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" id="amount" placeholder="How much to send?" />
                             </div>
                         </div>
                         <div class="form-group">
@@ -91,6 +112,12 @@
                             <label for="data" class="col-sm-5 control-label">Optional Data</label>
                             <div class="col-sm-7">
                                 <input type="text" class="form-control" id="data" placeholder="Data added to chain" />
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="path" class="col-sm-5 control-label">Optional Path</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" id="path" placeholder="Comma separated list" />
                             </div>
                         </div>
                         <hr>
@@ -107,23 +134,31 @@
                         <h3 class="title">Output Control</h3>
                         <hr>
                         <div class="form-group">
-                            <label for="input-01-address" class="col-sm-5 control-label">Return Change</label>
+                            <label for="input-01-address" class="col-sm-5 control-label">Change</label>
                             <div class="col-sm-7">
                                 <select class="form-control" id="input-type">
-                                    <option value="auto">Auto Send</option>
+                                    <option value="auto">Auto Return</option>
                                 </select>
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label for="output-01-address" class="col-sm-5 control-label">Address 01</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control input-address" id="output-01-address" placeholder="Send to this address">
+                        <div class="output-wrapper" data-index="1">
+                            <div class="form-group">
+                                <label for="output-address-1" class="col-sm-5 control-label address-label">Address 1</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-address" id="output-address-1" placeholder="Send to this address">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="amount-1" class="col-sm-5 control-label amount-label">Amount 1</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control send-amount" id="amount-1" placeholder="How much to send?" />
+                                </div>
                             </div>
                         </div>
                         <div class="form-group">
                             <label class="col-sm-5 control-label empty"></label>
                             <div class="col-sm-7">
-                                <a href="#" class="btn btn-success btn-xs pull-right">ANOTHER ADDRESS</a>
+                                <a href="#" class="btn btn-success btn-xs pull-right add-output-key">ANOTHER ADDRESS</a>
                             </div>
                         </div>
                     </div>
@@ -153,21 +188,65 @@
                         </div>
                     </div>
                 </div>
+                <hr>
+                <div class="row">
+                    <div class="col-md-4"></div>
+                    <div class="col-md-4">
+                        Additional Tools:
+                        <br /><br />
+                    </div>
+                    <div class="col-md-4"></div>
+                </div>
+                <div class="well">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <a href="#" class="btn btn-primary btn-block fetch-data">FETCH DATA</a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="#" class="btn btn-primary btn-block validate-lineage">VALIDATE LINEAGE</a>
+                        </div>
+                        <div class="col-md-2">
+                            <div class="btn-group" style="width: 100%;">
+                                <a class="btn btn-success btn-block dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">SEARCH <span class="caret"></span>
+                                </a>
+                                <ul class="dropdown-menu">
+                                    <li><a href="#" class="searching" data-chain="btc" data-function="address">Bitcoin Addresses</a></li>
+                                    <li><a href="#" class="searching" data-chain="doge" data-function="address">Dogecoin Addresses</a></li>
+                                    <li><a href="#" class="searching" data-chain="btct" data-function="address">Bitcoin Testnet Addresses</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" class="searching" data-chain="btc" data-function="transaction">Bitcoin Transactions</a></li>
+                                    <li><a href="#" class="searching" data-chain="doge" data-function="transaction">Dogecoin Transactions</a></li>
+                                    <li><a href="#" class="searching" data-chain="btct" data-function="transaction">Bitcoin Testnet Transactions</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <input class="form-control" id="search-chain" placeholder="Enter address or TXID here" autocomplete="off" />
+                        </div>
+                    </div>
+                </div>
             </form>
         </p> 
         
     </div>
 </div>
+    
+<div id="vision">
+    <div class="container">
+        <h2>our mission is to educate organizations throughout asia in both the legal and technical implications of distributed ledgers</h2>
+        <h4>We are a non-profit digitally distributed organization that is using and promoting blockchain governance as a method for collaboration between various business entities and existing community efforts across Asia</h4>
+        <a href="http://neuroware.us8.list-manage.com/subscribe?u=510ca926990f2cef070cbe3d2&id=f771047cf4" target="_blank" class="btn btn-primary btn-xl">REQUEST MEMBERSHIP</a>
+    </div>
+</div>
         
 <div id="footer">
     <div class="container">
-        <hr id="contact">
-        <h2>Contact Local Embassy</h2>
         <div id="nav">
-            <form class="subscribe" method="post" action="http://neuroware.us8.list-manage.com/subscribe?u=510ca926990f2cef070cbe3d2&id=f771047cf4">
-                <input type="text" class="form-control" name="MERGE0" placeholder="Enter email... If you need help understanding blockchains?" />
-                <button type="submit" class="submit btn btn-default">SUBMIT</button>
-            </form>
+            <a href="../">LEARN MORE</a>
+            <a href="../#ambassadors">AMBASSADORS</a>
+            <a href="../#uses">USE CASES</a>
+            <a href="../#contact">CONTACT EMBASSY</a>
+            <a href="http://flipboard.com/@msmalley/blockchain-embassy-492p8c3cy" target="_blank">NEWS</a>
         </div> 
     </div>
 </div>
@@ -186,6 +265,7 @@
     </div>
 </div>
     
+<script src="../assets/js/stats.js"></script>
 <script src="js/blockstrap/js/dependencies/jquery.min.js"></script>
 <script src="js/blockstrap/js/dependencies/bootstrap.min.js"></script>
 <script src="js/blockstrap/js/dependencies/bitcoinjs-lib.js"></script>

@@ -9,14 +9,44 @@ var bce = {
                 $.fn.blockstrap.core.modal('Derive Child Keys', html);
             });
         },
+        fetch: function()
+        {
+            $('a.btn.fetch-data').on('click', function(e)
+            {
+                e.preventDefault();
+                var html = bce.html.forms.fetch();
+                $.fn.blockstrap.core.modal('Fetch Data', html);
+            });
+        },
         init: function()
         {
             bce.buttons.child();
+            bce.buttons.fetch();
+            bce.buttons.inputs();
             bce.buttons.multi();
+            bce.buttons.outputs();
             bce.buttons.pair();
             bce.buttons.qr();
             bce.buttons.relay();
+            bce.buttons.search();
             bce.buttons.spend();
+            bce.buttons.validate();
+        },
+        inputs: function()
+        {
+            $('a.add-input-key').on('click', function(e)
+            {
+                e.preventDefault();
+                var input_count = $('.input-wrapper').length;
+                var last_wrapper = $('.input-wrapper[data-index="'+(input_count)+'"]');
+                var last_wrapper_html = $(last_wrapper).html();
+                var next_wrapper_html = '<div class="input-wrapper" data-index="'+(input_count + 1)+'">';
+                next_wrapper_html = next_wrapper_html + last_wrapper_html + '</div>';
+                $(last_wrapper).after(next_wrapper_html);
+                var new_wrapper = $('.input-wrapper[data-index="'+(input_count + 1)+'"]');
+                $(new_wrapper).find('.control-label').attr('for', 'input-private-'+(input_count + 1)).text('Private Key '+(input_count + 1));
+                $(new_wrapper).find('.input-private').attr('id', 'input-private-'+(input_count + 1)).val('');
+            });
         },
         multi: function()
         {
@@ -25,6 +55,24 @@ var bce = {
                 e.preventDefault();
                 var html = bce.html.forms.multi();
                 $.fn.blockstrap.core.modal('Create Multisignature Account', html);
+            });
+        },
+        outputs: function()
+        {
+            $('a.add-output-key').on('click', function(e)
+            {
+                e.preventDefault();
+                var input_count = $('.output-wrapper').length;
+                var last_wrapper = $('.output-wrapper[data-index="'+(input_count)+'"]');
+                var last_wrapper_html = $(last_wrapper).html();
+                var next_wrapper_html = '<div class="output-wrapper" data-index="'+(input_count + 1)+'">';
+                next_wrapper_html = next_wrapper_html + last_wrapper_html + '</div>';
+                $(last_wrapper).after(next_wrapper_html);
+                var new_wrapper = $('.output-wrapper[data-index="'+(input_count + 1)+'"]');
+                $(new_wrapper).find('.address-label').attr('for', 'amount-'+(input_count + 1)).text('Address '+(input_count + 1));
+                $(new_wrapper).find('.amount-label').attr('for', 'output-address-'+(input_count + 1)).text('Amount '+(input_count + 1));
+                $(new_wrapper).find('.output-address').attr('id', 'output-address-'+(input_count + 1)).val('');
+                $(new_wrapper).find('.send-amount').attr('id', 'amount-'+(input_count + 1)).val('');
             });
         },
         pair: function()
@@ -75,14 +123,241 @@ var bce = {
                         var message = 'Unable to relay transaction';
                         if(tx && tx.txid)
                         {
-                            var base_url = 'http://spinal.neuroware.io/v1/'+chain+'/tx/';
-                            var tx_url = base_url + tx.txid + '/verbose';
+                            //var base_url = 'http://spinal.neuroware.io/v1/'+chain+'/tx/';
+                            //var tx_url = base_url + tx.txid + '/verbose';
+                            var base_url = 'https://chain.so/tx/'+chain+'/';
+                            var tx_url = base_url + tx.txid;
                             title = 'Success';
                             message = '<p>Successfully <a href="'+tx_url+'" target="_blank">RELAYED</a> Transaction ID: '+tx.txid+'</p>';
                         }
                         $.fn.blockstrap.core.modal(title, message);
                     });
                 }
+            });
+        },
+        search: function()
+        {
+            $('.dropdown-menu a.searching').on('click', function(e)
+            {
+                e.preventDefault();
+                var chain = $(this).attr('data-chain');
+                var func = $(this).attr('data-function');
+                var input = $(this).parent().parent().parent().parent().next().find('input');
+                var value = $(input).val();
+                if(chain && value && (func == 'transaction' || func == 'address'))
+                {
+                    $.fn.blockstrap.api[func](value, chain, function(obj)
+                    {
+                        var results = {
+                            success: false,
+                            title: 'Error',
+                            msg: 'Invalid ' + func
+                        }
+                        if(func == 'address')
+                        {
+                            if(typeof obj.address != 'undefined' && obj.address != 'N/A')
+                            {
+                                results.title = 'Warning';
+                                results.msg = 'This address has not yet been used';
+                                if(typeof obj.tx_count != 'undefined' && obj.tx_count > 0)
+                                {
+                                    $.fn.blockstrap.api.transactions(value, chain, function(full_obj)
+                                    {
+                                        var txs = false;
+                                        if(typeof full_obj.txs != 'undefined' && $.isArray(full_obj.txs))
+                                        {
+                                            txs = full_obj.txs;
+                                        }
+                                        
+                                        results.success = true;
+                                        results.title = 'Address: <small>' + value + '</small>';
+                                        results.msg = '<div style="text-align: center;">';
+
+                                        results.msg+= '<hr><div class="well">';
+                                        results.msg+= '<div class="row">';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p><strong>Balance:</strong></p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p>' + parseFloat((obj.balance / 100000000)).toFixed(8) + '</p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '<div class="row">';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p><strong>Received:</strong></p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p>' + parseFloat((obj.received / 100000000)).toFixed(8) + '</p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '<div class="row">';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p><strong>TX Count:</strong></p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<p>' + obj.tx_count + '</p>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '</div>';
+                                        results.msg+= '</div>';
+                                        
+                                        if(txs)
+                                        {
+                                            $.each(txs, function(i, k)
+                                            {
+                                                results.msg+= '<span class="alert alert-info alert-block">TXID: <small>' + txs[i].hash + '</small></span>';
+                                                results.msg+= '<div style="text-align: center;">';
+                                                results.msg+= '<hr><div class="well">';
+                                                results.msg+= '<div class="row">';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p><strong>Block Height:</strong></p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p>' + txs[i].block_height + '</p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '<div class="row">';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p><strong>TX Size:</strong></p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p>' + txs[i].size + '</p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '<div class="row">';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p><strong>TX Fees:</strong></p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '<div class="col-sm-6">';
+                                                results.msg+= '<p>' + parseFloat((txs[i].fees / 100000000)).toFixed(8) + '</p>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '</div>';
+                                                results.msg+= '</div>';
+
+                                                if(txs[i].inputs && txs[i].outputs)
+                                                {
+                                                    results.msg+= '<hr>';
+                                                    results.msg+= '<div class="row">';
+                                                    results.msg+= '<div class="col-sm-6">';
+                                                    results.msg+= '<span class="alert alert-success alert-block">INPUTS</span>';
+
+                                                    $.each(txs[i].inputs, function(ii, k)
+                                                    {
+                                                        var input = txs[i].inputs[ii];
+                                                        results.msg+= '<hr><p>Address: <small>' + input.addresses[0] + '</small></p>';
+                                                        results.msg+= '<p>Amount: ' + parseFloat((input.output_value / 100000000)).toFixed(8) + '</p>';
+                                                    });
+
+                                                    results.msg+= '<hr></div>';
+                                                    results.msg+= '<div class="col-sm-6">';
+                                                    results.msg+= '<span class="alert alert-danger alert-block">OUTPUTS</span>';
+
+                                                    $.each(txs[i].outputs, function(ii, k)
+                                                    {
+                                                        var output = txs[i].outputs[ii];
+                                                        results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
+                                                        results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                                    });
+
+                                                    results.msg+= '<hr></div>';
+                                                    results.msg+= '</div>';
+                                                }
+                                                results.msg+= '</div>';
+                                            });
+                                        }
+
+                                        results.msg+= '</div>';
+                                        $.fn.blockstrap.core.modal(results.title, results.msg);
+                                    }, $.fn.blockstrap.settings.api_service, true);
+                                }
+                            }
+                            else
+                            {
+                                $.fn.blockstrap.core.modal(results.title, results.msg);
+                            }
+                        }
+                        else
+                        {
+                            if(typeof obj.txid != 'undefined' && obj.txid != 'N/A')
+                            {
+                                $.fn.blockstrap.api[func](value, chain, function(full_obj)
+                                {
+                                    var inputs = false;
+                                    var outputs = false;
+                                    if($.fn.blockstrap.settings.api_service == 'blockcypher')
+                                    {
+                                        inputs = full_obj.inputs;
+                                        outputs = full_obj.outputs;
+                                    }
+                                    
+                                    results.success = true;
+                                    results.title = 'TXID: <small>' + value + '</small>';
+                                    results.msg = '<div style="text-align: center;">';
+                                    results.msg+= '<hr><div class="well">';
+                                    results.msg+= '<div class="row">';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p><strong>Block Height:</strong></p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p>' + obj.block + '</p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '<div class="row">';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p><strong>TX Size:</strong></p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p>' + obj.size + '</p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '<div class="row">';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p><strong>TX Fees:</strong></p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '<div class="col-sm-6">';
+                                    results.msg+= '<p>' + parseFloat((obj.fees / 100000000)).toFixed(8) + '</p>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '</div>';
+                                    results.msg+= '</div>';
+                                    
+                                    if(inputs && outputs)
+                                    {
+                                        results.msg+= '<hr>';
+                                        results.msg+= '<div class="row">';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<span class="alert alert-success alert-block">INPUTS</span>';
+                                        
+                                        $.each(inputs, function(i, k)
+                                        {
+                                            var input = inputs[i];
+                                            results.msg+= '<hr><p>Address: <small>' + input.addresses[0] + '</small></p>';
+                                            results.msg+= '<p>Amount: ' + parseFloat((input.output_value / 100000000)).toFixed(8) + '</p>';
+                                        });
+                                        
+                                        results.msg+= '<hr></div>';
+                                        results.msg+= '<div class="col-sm-6">';
+                                        results.msg+= '<span class="alert alert-danger alert-block">OUTPUTS</span>';
+                                        
+                                        $.each(outputs, function(i, k)
+                                        {
+                                            var output = outputs[i];
+                                            results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
+                                            results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                        });
+                                        
+                                        results.msg+= '<hr></div>';
+                                        results.msg+= '</div>';
+                                    }
+                                    results.msg+= '</div>';
+                                    $.fn.blockstrap.core.modal(results.title, results.msg);
+                                }, $.fn.blockstrap.settings.api_service, true);
+                            }
+                            else
+                            {
+                                $.fn.blockstrap.core.modal(results.title, results.msg);
+                            }
+                        }
+                    });
+                }   
             });
         },
         spend: function()
@@ -93,6 +368,15 @@ var bce = {
                 var html = bce.html.forms.spend();
                 $.fn.blockstrap.core.modal('Multisignature Control', html);
             });
+        },
+        validate: function()
+        {
+            $('a.btn.validate-lineage').on('click', function(e)
+            {
+                e.preventDefault();
+                var html = bce.html.forms.validate();
+                $.fn.blockstrap.core.modal('Validate HD Lineage', html);
+            });
         }
     },
     html: {
@@ -101,12 +385,16 @@ var bce = {
             {
                 var chains = [
                     {
-                        value: 'doget',
-                        text: 'Dogecoin Testnet'
-                    },
-                    {
                         value: 'doge',
                         text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
                     }
                 ];  
                 var html = '<form id="bce-child-key" class="form-horizontal">';
@@ -134,6 +422,27 @@ var bce = {
                     html+= bce.html.forms.input('bce-extended-private', 'Derived HD Private Key', 'text', 'Waiting for path ...', true);
                     html+= bce.html.forms.input('bce-extended-wif', 'Derived Private (WIF) Key', 'text', 'Waiting for path ...', true);
                     html+= bce.html.forms.input('bce-extended-address', 'Derived Address', 'text', 'Waiting for path ...', true);
+                html+= '</form>';
+                return html;
+            },
+            fetch: function()
+            {
+                var chains = [
+                    {
+                        value: 'doge',
+                        text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
+                    }
+                ];  
+                var html = '<form id="fetch-data" class="form-horizontal">';
+                html+= 'FETCH FORM';
                 html+= '</form>';
                 return html;
             },
@@ -176,12 +485,16 @@ var bce = {
             {
                 var chains = [
                     {
-                        value: 'doget',
-                        text: 'Dogecoin Testnet'
-                    },
-                    {
                         value: 'doge',
                         text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
                     }
                 ];  
                 var types = [
@@ -209,12 +522,16 @@ var bce = {
                 var html = '<form id="bce-key-pair" class="form-horizontal">';
                     var chains = [
                         {
-                            value: 'doget',
-                            text: 'Dogecoin Testnet'
-                        },
-                        {
                             value: 'doge',
                             text: 'Dogecoin'
+                        },
+                        {
+                            value: 'btc',
+                            text: 'Bitcoin'
+                        },
+                        {
+                            value: 'btct',
+                            text: 'Bitcoin Testnet'
                         }
                     ];  
                     html+= '<p>Generate standard key-pairs using any and (or) all of the options below. However, please note that by not using all 3 fields and (or) insecure values, you may be vulnerable. These tools are merely designed to help understand how cryptographic transactions work.</p><hr>';
@@ -276,12 +593,16 @@ var bce = {
             {
                 var chains = [
                     {
-                        value: 'doget',
-                        text: 'Dogecoin Testnet'
-                    },
-                    {
                         value: 'doge',
                         text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
                     }
                 ];  
                 var html = '<form id="bce-spend" class="form-horizontal">';
@@ -303,13 +624,39 @@ var bce = {
                     html+= '</div>';
                 html+= '</form>';
                 return html;
+            },
+            validate: function()
+            {
+                var chains = [
+                    {
+                        value: 'doge',
+                        text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
+                    }
+                ];  
+                var html = '<form id="validate-lineage" class="form-horizontal">';
+                html+= 'VALIDATE FORM';
+                html+= '</form>';
+                return html;
             }
+        },
+        init: function()
+        {
+            $('span.api-provider').text($.fn.blockstrap.settings.api_service);
         }
     },
     init: function()
     {
         bce.buttons.init();
         bce.forms.init();
+        bce.html.init();
     },
     forms: {
         child: function()
@@ -697,7 +1044,7 @@ var bce = {
                 var private_keys = [];
                 var send_addresses = [];
                 var chain = $(form).find('select#chain').val();
-                var amount = $(form).find('input#amount').val();
+                var amount = 0;
                 var fee = $(form).find('input#fee').val();
                 var data = $(form).find('input#data').val();
                 var title = 'Warning';
@@ -710,6 +1057,10 @@ var bce = {
                     var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
                     var network = bitcoin.networks[bitcoinjs_chain];
                     message = 'Need to send something somewhere, even if encoding data and sending back to yourself';
+                    $('.send-amount').each(function(i)
+                    {
+                        amount = amount + parseInt($(this).val() * 100000000);
+                    });
                     if(amount)
                     {
                         $('.input-private').each(function(i)
@@ -718,13 +1069,15 @@ var bce = {
                         });
                         $('.input-address').each(function(i)
                         {
-                            send_addresses.push($(this).val());
+                            send_addresses.push({
+                                address: $(this).val(),
+                                val: parseInt($(this).parent().parent().parent().find('.send-amount').val())
+                            });
                         });
                         if(blockstrap_functions.array_length(private_keys) > 0)
                         {
                             if(blockstrap_functions.array_length(send_addresses) > 0)
                             {
-                                amount = parseInt((parseFloat(amount) * 100000000));
                                 if(fee)
                                 {
                                     fee = parseInt((parseFloat(fee) * 100000000));
@@ -747,98 +1100,105 @@ var bce = {
                                     var amount_needed = amount + fee;
                                     var amount_used = 0;
                                     var tx = new bitcoin.TransactionBuilder();
+                                    
                                     $.each(private_keys, function(key_index)
                                     {
+                            
                                         var keys = bitcoin.ECKey.fromWIF(private_keys[key_index]);
                                         var address = keys.pub.getAddress(network).toString();
                                         $.fn.blockstrap.api.unspents(address, chain, function(results)
                                         {
                                             checked++;
+                                            
                                             if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
                                             {
-                                                $.each(results, function(i)
+                                                $.each(results, function(i, o)
                                                 {
-                                                    var unspent = results[i];
                                                     if(amount_used < amount_needed)
                                                     {
-                                                        tx.addInput(unspent.txid, unspent.index);
-                                                        amount_used = amount_used + unspent.value;
+                                                        tx.addInput(o.txid, o.index);
+                                                        amount_used = amount_used + o.value;
                                                         inputs_to_sign.push(input_index);
                                                         input_index++;
                                                     }
                                                 });
                                             }
-                                            if(blockstrap_functions.array_length(send_addresses) == 1)
+                                            
+                                            
+                                            if(amount_used >= amount_needed)
                                             {
-                                                if(amount_used >= amount_needed)
+                                                if(checked >= blockstrap_functions.array_length(private_keys))
                                                 {
-                                                    if(checked >= blockstrap_functions.array_length(private_keys))
+
+                                                    $.each(send_addresses, function(i, send)
                                                     {
                                                         outputs.push({
-                                                            address: send_addresses[0],
-                                                            value: amount
+                                                            address: send.address,
+                                                            value: parseInt(send.val) * 100000000
                                                         });
-                                                        var change = amount_used - amount_needed;
-                                                        if(change > 0)
-                                                        {
-                                                            outputs.push({
-                                                                address: address,
-                                                                value: change
-                                                            });
-                                                        }
-                                                        $.each(outputs, function(i, o)
-                                                        {
-                                                            tx.addOutput(o.address, o.value);
+                                                    })
+                                                    var change = amount_used - amount_needed;
+                                                    if(change > 0)
+                                                    {
+                                                        outputs.push({
+                                                            address: address,
+                                                            value: change
                                                         });
-                                                        if(typeof data == 'string' && data)
-                                                        {
-                                                            var op = Crypto.util.base64ToBytes(btoa(data));
-                                                            var op_out = bitcoin.Script.fromHex(op).toBuffer();
-                                                            var op_return = bitcoin.Script.fromChunks(
-                                                            [
-                                                                bitcoin.opcodes.OP_RETURN,
-                                                                op_out
-                                                            ]);
-                                                            tx.addOutput(op_return, 0);
-                                                        }
-                                                        $.each(inputs_to_sign, function(k)
-                                                        {
-                                                            tx.sign(k, keys);
-                                                        });
-                                                        var built = tx.build();
-                                                        var raw = built.toHex();
-                                                        if(raw)
-                                                        {
-                                                            var title = 'Raw Transaction';
-                                                            var message = '<p>This is the raw transaction - waiting to be sent.</p>';
-                                                            message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
-                                                            message+= '<div class="well" style="margin-bottom: 0">';
-                                                                message+= '<div class="row">';
-                                                                    message+= '<div class="col-md-2"></div>';
-                                                                    message+= '<div class="col-md-4">';
-                                                                        message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
-                                                                    message+= '</div>';
-                                                                    message+= '<div class="col-md-4">';
-                                                                        message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
-                                                                    message+= '</div>';
-                                                                    message+= '<div class="col-md-2"></div>';
-                                                                message+= '</div>';
-                                                            message+= '</div>';
-                                                            $.fn.blockstrap.core.modal(title, message);
-                                                        }
                                                     }
-                                                }
-                                                else
-                                                {
-                                                    var title = 'Warning';
-                                                    var message = 'There is not enough unspent inputs to use for this transaction';
-                                                    $.fn.blockstrap.core.modal(title, message);
+
+                                                    $.each(outputs, function(i, o)
+                                                    {
+                                                        tx.addOutput(o.address, o.value);
+                                                    });
+
+                                                    if(typeof data == 'string' && data)
+                                                    {
+                                                        var op = Crypto.util.base64ToBytes(btoa(data));
+                                                        var op_out = bitcoin.Script.fromHex(op).toBuffer();
+                                                        var op_return = bitcoin.Script.fromChunks(
+                                                        [
+                                                            bitcoin.opcodes.OP_RETURN,
+                                                            op_out
+                                                        ]);
+                                                        tx.addOutput(op_return, 0);
+                                                    }
+
+                                                    $.each(inputs_to_sign, function(k)
+                                                    {
+                                                        tx.sign(k, keys);
+                                                    });
+
+                                                    var built = tx.build();
+                                                    var raw = built.toHex();
+
+                                                    if(raw)
+                                                    {
+                                                        var title = 'Raw Transaction';
+                                                        var message = '<p>This is the raw transaction - waiting to be sent.</p>';
+                                                        message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
+                                                        message+= '<div class="well" style="margin-bottom: 0">';
+                                                            message+= '<div class="row">';
+                                                                message+= '<div class="col-md-2"></div>';
+                                                                message+= '<div class="col-md-4">';
+                                                                    message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
+                                                                message+= '</div>';
+                                                                message+= '<div class="col-md-4">';
+                                                                    message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
+                                                                message+= '</div>';
+                                                                message+= '<div class="col-md-2"></div>';
+                                                            message+= '</div>';
+                                                        message+= '</div>';
+                                                        $.fn.blockstrap.core.modal(title, message);
+                                                    }
                                                 }
                                             }
                                             else
                                             {
-                                                console.log('NOT READY FOR THIS YET');
+                                                var title = 'Warning';
+                                                var message = 'There is not enough unspent inputs to use for this transaction';
+                                                $.fn.blockstrap.core.modal(title, message);
                                             }
+                                        
                                         });
                                     });
                                 }
