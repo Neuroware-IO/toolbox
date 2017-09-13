@@ -144,7 +144,7 @@ var blockstrap_core = function()
             },
             api: function(default_service)
             {
-                api = 'spinal';
+                api = 'blockstrap';
                 if(typeof $.fn.blockstrap.settings.default_api != 'undefined')
                 {
                     api = $.fn.blockstrap.settings.default_api;
@@ -1205,8 +1205,9 @@ var blockstrap_core = function()
                     }
                 });
             },
-            loader: function(state)
+            loader: function(state, text)
             {
+                if(typeof text == 'undefined' || !text) text = 'LOADING';
                 $.fn.blockstrap.core.modals('close_all');
                 var element = $($.fn.blockstrap.element);
                 if(typeof $.fn.blockstrap.settings.loader_id != 'undefined')
@@ -1216,12 +1217,13 @@ var blockstrap_core = function()
                 if(state && state === 'open')
                 {
                     $(element).addClass('loading');
+                    $($.fn.blockstrap.element).attr('data-loading-content', text);
                 }
                 else
                 {
                     $(element).removeClass('loading');
                     $(element).removeClass('installing');
-                    $($.fn.blockstrap.element).attr('data-loading-content', 'LOADING');
+                    $($.fn.blockstrap.element).attr('data-loading-content', text);
                 }
                     
             },
@@ -1836,10 +1838,13 @@ var blockstrap_core = function()
                         var order_by = 1;
                         var order = 'asc';
                         var search = false;
+                        var table = $(this);
                         var header_cells = $(this).find('thead tr th');
                         var body_cells = $(this).find('tbody tr td');
+                        var callback = false;
                         if($(this).attr('data-search')) search = true;
                         if($(this).attr('data-dom')) dom = $(this).attr('data-dom');
+                        if($(this).attr('data-callback')) callback = $(this).attr('data-callback');
                         if($(this).attr('data-order')) order = $(this).attr('data-order');
                         if($(this).attr('data-order-by')) order_by = parseInt($(this).attr('data-order-by'));
                         $.fn.blockstrap.core.table[$(this).attr('id')] = $(this).DataTable({
@@ -1851,7 +1856,11 @@ var blockstrap_core = function()
                                 $(header_cells).each(function(i)
                                 {
                                     $(this).attr('data-width', $(this).width());
-                                })
+                                });
+                                if(typeof window[callback] === "function")
+                                {
+                                    window[callback](table);
+                                }
                             }
                         });
                     }

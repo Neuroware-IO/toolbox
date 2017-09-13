@@ -151,7 +151,7 @@ var bce = {
                         var results = {
                             success: false,
                             title: 'Error',
-                            msg: 'Invalid ' + func
+                            msg: 'Invalid ' + func + ' and (or) API key / request ...'
                         }
                         if(func == 'address')
                         {
@@ -650,6 +650,36 @@ var bce = {
         init: function()
         {
             $('span.api-provider').text($.fn.blockstrap.settings.api_service);
+            $('input#ad-hoc-api-key').change(function(e)
+            {
+                var api = $.fn.blockstrap.settings.api_service;
+                var original_keys = false;
+                if(
+                    typeof $.fn.blockstrap.settings.keys != 'undefined'
+                    && typeof $.fn.blockstrap.settings.keys.apis != 'undefined'
+                    && typeof $.fn.blockstrap.settings.keys.apis[api] != 'undefined'
+                )
+                {
+                    original_keys = $.fn.blockstrap.settings.keys.apis[api];
+                }
+                else
+                {
+                    $.fn.blockstrap.settings.keys = {};
+                    $.fn.blockstrap.settings.keys.apis = {};
+                }
+                var content = $(this).val();
+                if(content && content != original_keys)
+                {
+                    $.fn.blockstrap.settings.keys.apis[api] = {
+                        key_name: "token",
+                        key: content
+                    };
+                }
+                else
+                {
+                    $.fn.blockstrap.settings.keys.apis[api] = original_keys;
+                }
+            });
         }
     },
     init: function()
