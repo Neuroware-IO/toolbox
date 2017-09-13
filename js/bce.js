@@ -26,11 +26,11 @@ var bce = {
             bce.buttons.multi();
             bce.buttons.outputs();
             bce.buttons.pair();
+            bce.buttons.post();
             bce.buttons.qr();
             bce.buttons.relay();
             bce.buttons.search();
             bce.buttons.spend();
-            bce.buttons.validate();
         },
         inputs: function()
         {
@@ -82,6 +82,15 @@ var bce = {
                 e.preventDefault();
                 var html = bce.html.forms.pair();
                 $.fn.blockstrap.core.modal('Generate Key Pairs', html);
+            });
+        },
+        post: function()
+        {
+            $('a.btn.post-data').on('click', function(e)
+            {
+                e.preventDefault();
+                var html = bce.html.forms.post();
+                $.fn.blockstrap.core.modal('Post Data', html);
             });
         },
         qr: function()
@@ -368,15 +377,6 @@ var bce = {
                 var html = bce.html.forms.spend();
                 $.fn.blockstrap.core.modal('Multisignature Control', html);
             });
-        },
-        validate: function()
-        {
-            $('a.btn.validate-lineage').on('click', function(e)
-            {
-                e.preventDefault();
-                var html = bce.html.forms.validate();
-                $.fn.blockstrap.core.modal('Validate HD Lineage', html);
-            });
         }
     },
     html: {
@@ -442,7 +442,17 @@ var bce = {
                     }
                 ];  
                 var html = '<form id="fetch-data" class="form-horizontal">';
-                html+= 'FETCH FORM';
+                
+                html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
+                html+= bce.html.forms.input('bce-extended-key', 'HD Public Key', 'text', 'Expecting an extended public key');
+                html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
+                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Waiting to be fetched ...', true);
+                
+                html+= '<div class="row">';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block">RESET</a></div>';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-fetch">FETCH</a></div>';
+                html+= '</div>';
+                
                 html+= '</form>';
                 return html;
             },
@@ -561,6 +571,37 @@ var bce = {
                 html+= '</form>';
                 return html;
             },
+            post: function()
+            {
+                var chains = [
+                    {
+                        value: 'doge',
+                        text: 'Dogecoin'
+                    },
+                    {
+                        value: 'btc',
+                        text: 'Bitcoin'
+                    },
+                    {
+                        value: 'btct',
+                        text: 'Bitcoin Testnet'
+                    }
+                ];  
+                var html = '<form id="post-data" class="form-horizontal">';
+               
+                html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
+                html+= bce.html.forms.input('bce-extended-key', 'HD Private Key', 'text', 'Expecting an extended private key');
+                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Limited to 38 characters');
+                html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
+                
+                html+= '<div class="row">';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block">RESET</a></div>';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-post">POST</a></div>';
+                html+= '</div>';
+                
+                html+= '</form>';
+                return html;
+            },
             select: function(id, label, values)
             {
                 if(typeof id != 'undefined' && typeof label != 'undefined')
@@ -624,27 +665,6 @@ var bce = {
                     html+= '</div>';
                 html+= '</form>';
                 return html;
-            },
-            validate: function()
-            {
-                var chains = [
-                    {
-                        value: 'doge',
-                        text: 'Dogecoin'
-                    },
-                    {
-                        value: 'btc',
-                        text: 'Bitcoin'
-                    },
-                    {
-                        value: 'btct',
-                        text: 'Bitcoin Testnet'
-                    }
-                ];  
-                var html = '<form id="validate-lineage" class="form-horizontal">';
-                html+= 'VALIDATE FORM';
-                html+= '</form>';
-                return html;
             }
         },
         init: function()
@@ -693,7 +713,8 @@ var bce = {
         {
             $('body').on('keyup', 'form#bce-child-key input#bce-extended-key', function()
             {
-                var chain = $('form#bce-child-key select#bce-chain').val();
+                var form = $(this).parent().parent().parent();
+                var chain = $(form).find('select#bce-chain').val();
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
                 var network = bitcoin.networks[bitcoinjs_chain];
                 var key = $(this).val();
@@ -706,23 +727,23 @@ var bce = {
                 }
                 if(typeof keys.depth != 'undefined')
                 {
-                    $('form#bce-child-key input#bce-key-depth').val(keys.depth);
+                    $(form).find('input#bce-key-depth').val(keys.depth);
                 }
                 if(typeof keys.index != 'undefined')
                 {
-                    $('form#bce-child-key input#bce-key-index').val(keys.index);
+                    $(form).find('input#bce-key-index').val(keys.index);
                 }
                 if(typeof keys.depth == 'undefined' && typeof keys.index == 'undefined')
                 {
-                    $('form#bce-child-key input#bce-key-depth').val('');
-                    $('form#bce-child-key input#bce-key-index').val('');
-                    $('form#bce-child-key input#bce-extended-address').val('');
-                    $('form#bce-child-key input#bce-extended-private').val('');
-                    $('form#bce-child-key input#bce-extended-wif').val('');
-                    $('form#bce-child-key input#bce-extended-public').val('');
-                    $('form#bce-child-key input#bce-derive-path').val('');
-                    $('form#bce-child-key input#bce-keys-index').val('');
-                    $('form#bce-child-key input#bce-keys-depth').val('');
+                    $(form).find('input#bce-key-depth').val('');
+                    $(form).find('input#bce-key-index').val('');
+                    $(form).find('input#bce-extended-address').val('');
+                    $(form).find('input#bce-extended-private').val('');
+                    $(form).find('input#bce-extended-wif').val('');
+                    $(form).find('input#bce-extended-public').val('');
+                    $(form).find('input#bce-derive-path').val('');
+                    $(form).find('input#bce-keys-index').val('');
+                    $(form).find('input#bce-keys-depth').val('');
                 }
             });
             $('body').on('keyup', 'form#bce-child-key input#bce-derive-path', function()
