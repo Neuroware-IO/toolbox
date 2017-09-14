@@ -29,6 +29,7 @@ var bce = {
             bce.buttons.post();
             bce.buttons.qr();
             bce.buttons.relay();
+            bce.buttons.reset();
             bce.buttons.search();
             bce.buttons.spend();
         },
@@ -142,6 +143,14 @@ var bce = {
                         $.fn.blockstrap.core.modal(title, message);
                     });
                 }
+            });
+        },
+        reset: function()
+        {
+            $('body').on('click', 'a.btn.btn-reset', function(e)
+            {
+                e.preventDefault();
+                var form = $('#' + $(this).attr('data-id')).find('input').val('');
             });
         },
         search: function()
@@ -449,7 +458,7 @@ var bce = {
                 html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Waiting to be fetched ...', true);
                 
                 html+= '<div class="row">';
-                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block">RESET</a></div>';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="fetch-data">RESET</a></div>';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-fetch">FETCH</a></div>';
                 html+= '</div>';
                 
@@ -595,7 +604,7 @@ var bce = {
                 html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
                 
                 html+= '<div class="row">';
-                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block">RESET</a></div>';
+                    html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="post-data">RESET</a></div>';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-post">POST</a></div>';
                 html+= '</div>';
                 
@@ -660,7 +669,7 @@ var bce = {
                     html+= bce.html.forms.input('bce-private-02', '2nd Private Key', 'text', 'Any one of the three ...');
                     html+= '<hr>';
                     html+= '<div class="row">';
-                        html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block">RESET</a></div>';
+                        html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="bce-spend">RESET</a></div>';
                         html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-spend">SEND</a></div>';
                     html+= '</div>';
                 html+= '</form>';

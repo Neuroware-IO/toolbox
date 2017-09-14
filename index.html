@@ -41,11 +41,18 @@
         <h2>build and send blockchain transactions from your browser</h2>
         <h4>we currently use the <span class="api-provider">XXX</span> api - please note that errors may occur due to rate limits</h4>
         <div class="row">
-            <div class="col-md-4"></div>
-            <div class="col-md-4">
-                <input class="form-control" id="ad-hoc-api-key" placeholder="optionally add your own personal API key here" autocomplete="off" />
+            <div class="col-md-3"></div>
+            <div class="col-md-6">
+                <form id="tx-control" class="form-horizontal">
+                    <div class="form-group">
+                        <label for="ad-hoc-api-key" class="col-sm-5 control-label">Optional Key</label>
+                        <div class="col-sm-7">
+                            <input type="text" class="form-control" id="ad-hoc-api-key" placeholder="add your own personal API key here" autocomplete="off" />
+                        </div>
+                    </div>
+                </form>
             </div>
-            <div class="col-md-4"></div>
+            <div class="col-md-3"></div>
         </div>
     </div>
 </div>
@@ -123,7 +130,7 @@
                         <hr>
                         <div class="row">
                             <div class="col-md-6">
-                                <a href="#" class="btn btn-danger btn-block btn-reset">RESET</a>
+                                <a href="#" class="btn btn-danger btn-block btn-reset" data-id="tx-control">RESET</a>
                             </div>
                             <div class="col-md-6">
                                 <a href="#" class="btn btn-success btn-block btn-build">BUILD</a>

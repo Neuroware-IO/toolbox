@@ -1,6 +1,6 @@
 ### Introducing The Blockchain Embassy of Asia
 
-[BCE.asia](http://bce.asia) is a non-profit digitally distributed organization that is using and promoting blockchain governance as a method for collaboration between various business entities and existing community efforts across Southeast Asia. We bridge the technical divide between organizations, national agencies and regulators throughout the region by providing access to our growing repositories of collaborative research. Our sandbox environment not only provides a technical foundation for growth, but also features legal frameworks too.
+[BCE.asia](http://bce.asia) is a non-profit digitally distributed organization that is using and promoting blockchain governance as a method for collaboration between various business entities and existing community efforts across Southeast Asia.
 
 ### The Embassy Toolkit
 
@@ -10,7 +10,19 @@ As part of our early research in understanding the basic foundations of crypto-c
 * __Multi-Signature Accounts__ - create new multi-signature addresses and then sign and send transactions
 * __Hierarchical Keys__ - check the depth and index of extended keys and derive new children via paths
 * __Transaction Builder__ - create and view new transactions from API-driven unspents before relaying
+* __Post & Fetch Data__ - store and verify structured data using extended keys
+* __Lookup Addresses & Transactions__ - search for an address or transaction
+
+The blockchains currently supported include:
+
+* Bitcoin
+* Bitcoin Tesnet
+* Dogecoin
+
+The APIs currently supported include:
+
+* BlockCypher
 
 ### Caveats
 
-This repo currently does not stand-alone as certain style sheets and JS files are still located within [BCE}(https://github.com/Neuroware-IO/bceasia) repo. This is a work in progress project currently aimed at supporting the [online version](http://bce.asia/toolbox/), which willeventually be updated to standalone.
+This repo currently does not stand-alone as certain style sheets and JS files are still located within [BCE](https://github.com/Neuroware-IO/bceasia) repo. This is a work in progress project currently aimed at supporting the [online version](http://bce.asia/toolbox/), which willeventually be updated to standalone.
