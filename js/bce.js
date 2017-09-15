@@ -272,8 +272,17 @@ var bce = {
                                                     $.each(txs[i].outputs, function(ii, k)
                                                     {
                                                         var output = txs[i].outputs[ii];
-                                                        results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
-                                                        results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                                        if(
+                                                            typeof output.addresses != 'undefined'
+                                                            && output.addresses
+                                                        ){
+                                                            results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
+                                                            results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                                        }
+                                                        else if(typeof output.data_string != 'undefined')
+                                                        {
+                                                            results.msg+= '<hr><span class="alert alert-warning alert-block">Data: <strong>' + output.data_string + '</strong></span>';
+                                                        }
                                                     });
 
                                                     results.msg+= '<hr></div>';
@@ -358,8 +367,18 @@ var bce = {
                                         $.each(outputs, function(i, k)
                                         {
                                             var output = outputs[i];
-                                            results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
-                                            results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                            
+                                            if(
+                                                typeof output.addresses != 'undefined'
+                                                && output.addresses
+                                            ){
+                                                results.msg+= '<hr><p>Address: <small>' + output.addresses[0] + '</small></p>';
+                                                results.msg+= '<p>Amount: ' + parseFloat((output.value / 100000000)).toFixed(8) + '</p>';
+                                            }
+                                            else if(typeof output.data_string != 'undefined')
+                                            {
+                                                results.msg+= '<hr><span class="alert alert-warning alert-block">Data: <strong>' + output.data_string + '</strong></span>';
+                                            }
                                         });
                                         
                                         results.msg+= '<hr></div>';
