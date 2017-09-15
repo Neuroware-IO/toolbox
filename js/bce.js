@@ -725,10 +725,10 @@ var bce = {
                 var form = $(this).parent().parent().parent();
                 var chain = $(form).find('select#bce-chain').val();
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
-                var network = bitcoin.networks[bitcoinjs_chain];
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
                 var key = $(this).val();
                 try{
-                    var keys = bitcoin.HDNode.fromBase58(key, network);
+                    var keys = nwbs.bitcoin.HDNode.fromBase58(key, network);
                 }
                 catch(e)
                 {
@@ -760,11 +760,11 @@ var bce = {
                 var chain = $('form#bce-child-key select#bce-chain').val();
                 var key = $('form#bce-child-key input#bce-extended-key').val();
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
-                var network = bitcoin.networks[bitcoinjs_chain];
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
                 var path = $(this).val();
                 var paths = path.split(',');
                 try{
-                    var keys = bitcoin.HDNode.fromBase58(key, network);
+                    var keys = nwbs.bitcoin.HDNode.fromBase58(key, network);
                     $.each(paths, function(i)
                     {
                         if(paths[i])
@@ -810,11 +810,90 @@ var bce = {
                 }
             });
         },
+        fetch: function()
+        {
+            $('.modal').on('click', 'a.btn-fetch', function(e)
+            {
+                e.preventDefault();
+                var form = $(this).parent().parent().parent();
+                var chain = $(form).find('select#bce-chain').val();
+                var extended_key = $(form).find('input#bce-extended-key').val();
+                var path = $(form).find('input#bce-derive-path').val();
+                var data_input = $(form).find('input#bce-to-data');
+                
+                var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
+                try{
+                    var keys = nwbs.bitcoin.HDNode.fromBase58(extended_key, network);
+                }
+                catch(e)
+                {
+                    var keys = false;
+                }
+                if(!extended_key)
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must input a HD extended key')
+                }
+                else if(
+                    typeof $.fn.blockstrap.settings.blockchains[chain] == 'undefined'
+                    || typeof $.fn.blockstrap.settings.blockchains[chain].fee == 'undefined'
+                ){
+                    $.fn.blockstrap.core.modal('Warning', 'This blockchain is not supported')
+                }
+                else if(!keys)
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must provide a valid HD (extended) key')
+                }
+                else if(keys && typeof keys.keyPair == 'undefined')
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must provide a private HD key - not a public one')
+                }
+                else
+                {
+                    var derived = false;   
+                    if(path)
+                    {
+                        derived = JSON.parse(JSON.stringify(path.split(',')));
+                        path = [];
+                        $.each(derived, function(i)
+                        {
+                            var this_path = parseInt(derived[i].replace(/ /g,''));
+                            keys = keys.derive(this_path);
+                        });
+                    }
+                    var address = keys.keyPair.getAddress(network).toString('hex');
+                    $.fn.blockstrap.api.transactions(address, chain, function(obj)
+                    {
+                        var data = false;
+                        if(
+                            typeof obj.txs != 'undefined'
+                            && $.isArray(obj.txs)
+                            && typeof obj.txs[0].outputs != 'undefined'
+                            && $.isArray(obj.txs[0].outputs)
+                            && typeof obj.txs[0].outputs[1].data_string != 'undefined'
+                        ){
+                            data = obj.txs[0].outputs[1].data_string;
+                        }
+                        if(data)
+                        {
+                            $(data_input).val(data);
+                            $(data_input).parent().parent().effect('shake');
+                        }
+                        else
+                        {
+                            $.fn.blockstrap.core.modal('Warning', 'Unable to find any data at address: ' + address);
+                        }
+                    }, $.fn.blockstrap.settings.api_service, true);
+                }
+            });
+        },
         init: function()
         {
             bce.forms.child();
+            bce.forms.fetch();
             bce.forms.pair();
             bce.forms.multi();
+            bce.forms.post();
             bce.forms.spend();
             bce.forms.txs();
         },
@@ -828,14 +907,14 @@ var bce = {
                 var key2 = $('form#bce-multi-sig input#bce-public-02').val();
                 var key3 = $('form#bce-multi-sig input#bce-public-03').val();
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
-                var network = bitcoin.networks[bitcoinjs_chain];
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
                 if(key1 && key2 && key3)
                 {
                     try{
                         var multisig_keys = $.fn.blockstrap.multisig.generate(false, chain, [
-                            {hex:bitcoin.HDNode.fromBase58(key1, network).pubKey.toHex()},
-                            {hex:bitcoin.HDNode.fromBase58(key2, network).pubKey.toHex()},
-                            {hex:bitcoin.HDNode.fromBase58(key3, network).pubKey.toHex()}
+                            {hex:nwbs.bitcoin.HDNode.fromBase58(key1, network).pubKey.toHex()},
+                            {hex:nwbs.bitcoin.HDNode.fromBase58(key2, network).pubKey.toHex()},
+                            {hex:nwbs.bitcoin.HDNode.fromBase58(key3, network).pubKey.toHex()}
                         ], 2);
                     }
                     catch(e)
@@ -868,7 +947,7 @@ var bce = {
                     if(!salt) salt = '';
                     if(!seed) seed = '';
                     if(!pw) pw = '';
-                    var hash = bitcoin.crypto.sha256(salt + seed + pw + chain).toString('hex');
+                    var hash = nwbs.bitcoin.crypto.sha256(salt + seed + pw + chain).toString('hex');
                     var keys = $.fn.blockstrap.blockchains.keys(hash, chain, 1, false, true);
                     var keys = $.fn.blockstrap.blockchains.keys(hash, chain, 1, false, true);
                     $('form#bce-key-pair #bce-hd-private').val(keys.raw.toString());
@@ -935,6 +1014,152 @@ var bce = {
                 }
             });
         },
+        post: function()
+        {
+            $('.modal').on('click', 'a.btn-post', function(e)
+            {
+                e.preventDefault();
+                var form = $(this).parent().parent().parent();
+                var chain = $(form).find('select#bce-chain').val();
+                var extended_key = $(form).find('input#bce-extended-key').val();
+                var to_data = $(form).find('input#bce-to-data').val();
+                var path = $(form).find('input#bce-derive-path').val();
+                var fee = false;
+                var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
+                try{
+                    var keys = nwbs.bitcoin.HDNode.fromBase58(extended_key, network);
+                }
+                catch(e)
+                {
+                    var keys = false;
+                }
+                if(!extended_key || !data)
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must input a private key and required data to continue')
+                }
+                else if(
+                    typeof $.fn.blockstrap.settings.blockchains[chain] == 'undefined'
+                    || typeof $.fn.blockstrap.settings.blockchains[chain].fee == 'undefined'
+                ){
+                    $.fn.blockstrap.core.modal('Warning', 'This blockchain is not supported')
+                }
+                else if(!keys)
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must provide a valid HD (extended) key')
+                }
+                else if(keys && typeof keys.keyPair == 'undefined')
+                {
+                    $.fn.blockstrap.core.modal('Warning', 'Must provide a private HD key - not a public one')
+                }
+                else
+                {
+                    fee = parseInt((parseFloat($.fn.blockstrap.settings.blockchains[chain].fee) * 100000000));   
+                    var derived = false;
+                    
+                    if(path)
+                    {
+                        derived = JSON.parse(JSON.stringify(path.split(',')));
+                        path = [];
+                        $.each(derived, function(i)
+                        {
+                            var this_path = parseInt(derived[i].replace(/ /g,''));
+                            keys = keys.derive(this_path);
+                        });
+                    }
+                    
+                    var checked = 0;
+                    var inputs = [];
+                    var outputs = [];
+                    var input_index = 0;
+                    var inputs_to_sign = [];
+                    var amount_needed = fee * 2;
+                    var amount_used = 0;
+                    
+                    var private_key = keys.keyPair.toWIF();
+                    var key_signer = nwbs.bitcoin.ECPair.fromWIF(private_key, network);
+                    var address = keys.keyPair.getAddress(network).toString('hex');
+                    
+                    $.fn.blockstrap.api.unspents(address, chain, function(results)
+                    {
+                        var tx = new nwbs.bitcoin.TransactionBuilder(network);
+                        
+                        if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
+                        {
+                            $.each(results, function(i, o)
+                            {
+                                var unspent = results[i];
+                                if(amount_used < amount_needed)
+                                {
+                                    tx.addInput(o.txid, o.index);
+                                    amount_used = amount_used + unspent.value;
+                                    inputs_to_sign.push(input_index);
+                                    input_index++;
+                                }
+                            });
+                        }
+                        
+                        if(amount_used >= amount_needed)
+                        {
+                            outputs.push({
+                                address: address,
+                                value: fee
+                            });
+                            var change = amount_used - amount_needed;
+                            if(change > 0)
+                            {
+                                outputs.push({
+                                    address: address,
+                                    value: change
+                                });
+                            }
+                            $.each(outputs, function(i, o)
+                            {
+                                tx.addOutput(o.address, o.value);
+                            });
+                            if(typeof to_data == 'string' && to_data)
+                            {
+                                var op = Crypto.util.base64ToBytes(btoa(to_data));
+                                var op_return_data = nwbs.bitcoin.script.compile(op);
+                                var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
+                                tx.addOutput(op_return, 0);
+                            }
+                            $.each(inputs_to_sign, function(k)
+                            {
+                                tx.sign(k, key_signer);
+                            });
+                            var built = tx.build();
+                            var raw = built.toHex();
+                            if(raw)
+                            {
+                                var title = 'Raw Transaction';
+                                var message = '<p>This is the raw transaction - waiting to be sent:</p>';
+                                message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
+                                message+= '<div class="well" style="margin-bottom: 0">';
+                                    message+= '<div class="row">';
+                                        message+= '<div class="col-md-2"></div>';
+                                        message+= '<div class="col-md-4">';
+                                            message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
+                                        message+= '</div>';
+                                        message+= '<div class="col-md-4">';
+                                            message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
+                                        message+= '</div>';
+                                        message+= '<div class="col-md-2"></div>';
+                                    message+= '</div>';
+                                message+= '</div>';
+                                $.fn.blockstrap.core.modal(title, message);
+                            }
+                        }
+                        else
+                        {
+                            var title = 'Warning';
+                            var message = 'There is not enough unspent inputs to use for this transaction';
+                            $.fn.blockstrap.core.modal(title, message);
+                        }
+                    });
+                }
+            });
+        },
         spend: function()
         {
             $('.modal').on('click', 'a.btn-spend', function(e)
@@ -962,9 +1187,9 @@ var bce = {
                     var inputs_to_sign = [];
                     var amount_needed = parseInt((parseFloat(to_amount) * 100000000)) + fee;
                     var amount_used = 0;
-                    var keys1 = bitcoin.ECKey.fromWIF(priv1);
-                    var keys2 = bitcoin.ECKey.fromWIF(priv2);
-                    var tx = new bitcoin.TransactionBuilder();
+                    var keys1 = nwbs.bitcoin.ECKey.fromWIF(priv1);
+                    var keys2 = nwbs.bitcoin.ECKey.fromWIF(priv2);
+                    var tx = new nwbs.bitcoin.TransactionBuilder();
                     $.fn.blockstrap.api.unspents(address, chain, function(results)
                     {
                         if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
@@ -1002,25 +1227,25 @@ var bce = {
                             if(typeof to_data == 'string' && to_data)
                             {
                                 var op = Crypto.util.base64ToBytes(btoa(to_data));
-                                var op_out = bitcoin.Script.fromHex(op).toBuffer();
-                                var op_return = bitcoin.Script.fromChunks(
+                                var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
+                                var op_return = nwbs.bitcoin.Script.fromChunks(
                                 [
-                                    bitcoin.opcodes.OP_RETURN,
+                                    nwbs.bitcoin.opcodes.OP_RETURN,
                                     op_out
                                 ]);
                                 tx.addOutput(op_return, 0);
                             }
                             $.each(inputs_to_sign, function(k)
                             {
-                                tx.sign(k, keys1, bitcoin.Script.fromHex(redeem));
-                                tx.sign(k, keys2, bitcoin.Script.fromHex(redeem));
+                                tx.sign(k, keys1, nwbs.bitcoin.Script.fromHex(redeem));
+                                tx.sign(k, keys2, nwbs.bitcoin.Script.fromHex(redeem));
                             });
                             var built = tx.build();
                             var raw = built.toHex();
                             if(raw)
                             {
                                 var title = 'Raw Transaction';
-                                var message = '<p>This is the raw transaction - waiting to be sent.</p>';
+                                var message = '<p>This is the raw transaction - waiting to be sent:</p>';
                                 message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
                                 message+= '<div class="well" style="margin-bottom: 0">';
                                     message+= '<div class="row">';
@@ -1115,7 +1340,7 @@ var bce = {
                     && typeof $.fn.blockstrap.settings.blockchains[chain].blockchain != 'undefined'
                 ){
                     var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
-                    var network = bitcoin.networks[bitcoinjs_chain];
+                    var network = nwbs.bitcoin.networks[bitcoinjs_chain];
                     message = 'Need to send something somewhere, even if encoding data and sending back to yourself';
                     $('.send-amount').each(function(i)
                     {
@@ -1159,12 +1384,12 @@ var bce = {
                                     var outputs = [];
                                     var amount_needed = amount + fee;
                                     var amount_used = 0;
-                                    var tx = new bitcoin.TransactionBuilder();
+                                    var tx = new nwbs.bitcoin.TransactionBuilder();
                                     
                                     $.each(private_keys, function(key_index)
                                     {
                             
-                                        var keys = bitcoin.ECKey.fromWIF(private_keys[key_index]);
+                                        var keys = nwbs.bitcoin.ECKey.fromWIF(private_keys[key_index]);
                                         var address = keys.pub.getAddress(network).toString();
                                         $.fn.blockstrap.api.unspents(address, chain, function(results)
                                         {
@@ -1214,10 +1439,10 @@ var bce = {
                                                     if(typeof data == 'string' && data)
                                                     {
                                                         var op = Crypto.util.base64ToBytes(btoa(data));
-                                                        var op_out = bitcoin.Script.fromHex(op).toBuffer();
-                                                        var op_return = bitcoin.Script.fromChunks(
+                                                        var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
+                                                        var op_return = nwbs.bitcoin.Script.fromChunks(
                                                         [
-                                                            bitcoin.opcodes.OP_RETURN,
+                                                            nwbs.bitcoin.opcodes.OP_RETURN,
                                                             op_out
                                                         ]);
                                                         tx.addOutput(op_return, 0);
@@ -1234,7 +1459,7 @@ var bce = {
                                                     if(raw)
                                                     {
                                                         var title = 'Raw Transaction';
-                                                        var message = '<p>This is the raw transaction - waiting to be sent.</p>';
+                                                        var message = '<p>This is the raw transaction - waiting to be sent:</p>';
                                                         message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
                                                         message+= '<div class="well" style="margin-bottom: 0">';
                                                             message+= '<div class="row">';
