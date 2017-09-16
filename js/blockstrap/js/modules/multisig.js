@@ -23,16 +23,16 @@
     multisig.decode = function(script, chain)
     {
         var keys = [];
-        var script = bitcoin.Script.fromHex(script);
+        var script = nwbs.bitcoin.Script.fromHex(script);
         var blockchain_key = $.fn.blockstrap.blockchains.key(chain);
-        var blockchain_obj = bitcoin.networks[blockchain_key];
+        var blockchain_obj = nwbs.bitcoin.networks[blockchain_key];
         var chunks = script.chunks;
         chunks = chunks.slice(1, blockstrap_functions.array_length(chunks) - 2);
         $.each(chunks, function(k, key)
         {
             keys.push({
-                address: bitcoin.ECPubKey.fromBuffer(key).getAddress(blockchain_obj).toString(),
-                key: bitcoin.ECPubKey.fromBuffer(key).toHex()
+                address: nwbs.bitcoin.ECPubKey.fromBuffer(key).getAddress(blockchain_obj).toString(),
+                key: nwbs.bitcoin.ECPubKey.fromBuffer(key).toHex()
             });
         });
         return keys;
@@ -78,13 +78,13 @@
             var keys = [];
             $.each(key_pairs.sort(function(a,b) {return (a.hex > b.hex) ? 1 : ((b.hex > a.hex) ? -1 : 0);} ), function(k, obj)
             {
-                var key = bitcoin.ECPubKey.fromHex(obj.hex);
+                var key = nwbs.bitcoin.ECPubKey.fromHex(obj.hex);
                 keys.push(key);
             });
-            var redeem_script = bitcoin.scripts.multisigOutput(required, keys); // 2 of 3
-            var script_pub_key = bitcoin.scripts.scriptHashOutput(redeem_script.getHash());
+            var redeem_script = nwbs.bitcoin.scripts.multisigOutput(required, keys); // 2 of 3
+            var script_pub_key = nwbs.bitcoin.scripts.scriptHashOutput(redeem_script.getHash());
             var lib = $.fn.blockstrap.settings.blockchains[chain].lib;
-            address = bitcoin.Address.fromOutputScript(script_pub_key, bitcoin.networks[lib]).toString();
+            address = nwbs.bitcoin.Address.fromOutputScript(script_pub_key, nwbs.bitcoin.networks[lib]).toString();
             key_pairs.push({
                 seed: hashed_seed,
                 script: redeem_script.toHex(),
@@ -105,7 +105,7 @@
         {
             $.each(keys, function(k, key)
             {
-                public_keys.push(bitcoin.ECPubKey.fromHex(key));
+                public_keys.push(nwbs.bitcoin.ECPubKey.fromHex(key));
             });
         }
         return public_keys;

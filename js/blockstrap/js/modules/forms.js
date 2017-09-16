@@ -460,7 +460,7 @@
             var account = $.fn.blockstrap.accounts.get(account_id);
             var this_account = account.blockchains[chain];
             var blockchain_key = $.fn.blockstrap.blockchains.key(chain);
-            var blockchain_obj = bitcoin.networks[blockchain_key];
+            var blockchain_obj = nwbs.bitcoin.networks[blockchain_key];
             var fields = [];
             $.each(account.keys, function(k, key)
             {
@@ -481,7 +481,7 @@
                 var contents = 'Credentials mis-match!';
                 if(verified === true)
                 {
-                    var signature = bitcoin.Message.sign(raw_keys.privKey, message, blockchain_obj);
+                    var signature = nwbs.bitcoin.Message.sign(raw_keys.privKey, message, blockchain_obj);
                     var msg = signature.toString('base64');
                     title = 'Success';
                     contents = '<p>Successfully encrypted message as follows:</p><pre><code>'+msg+'</code></pre>';
@@ -755,10 +755,10 @@
         if(address && chain && message && signature)
         {
             var blockchain_key = $.fn.blockstrap.blockchains.key(chain);
-            var blockchain_obj = bitcoin.networks[blockchain_key];
+            var blockchain_obj = nwbs.bitcoin.networks[blockchain_key];
             var verification = false;
             try{
-                verification = bitcoin.Message.verify(address, signature, message, blockchain_obj);
+                verification = nwbs.bitcoin.Message.verify(address, signature, message, blockchain_obj);
             }
             catch(error)
             {

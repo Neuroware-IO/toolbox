@@ -56,7 +56,7 @@
             // if decoding fails, assume invalid address
             return false;
         }
-        var decoded = bitcoin.Script.fromHex(decoded_hex).toBuffer();
+        var decoded = nwbs.bitcoin.Script.fromHex(decoded_hex).toBuffer();
         if (decoded.length != 25) {
             return false;
         }
@@ -68,7 +68,7 @@
     blockchains.decode = function(script_pub_key)
     {
         var str = '';
-        var op_return = bitcoin.Script.fromHex(script_pub_key).toASM();
+        var op_return = nwbs.bitcoin.Script.fromHex(script_pub_key).toASM();
         var op_array = op_return.split(' ');
         if(blockstrap_functions.array_length(op_array) == 2)
         {
@@ -104,14 +104,14 @@
                 var fee = $.fn.blockstrap.settings.blockchains[chain].fee * 100000000;
                 try
                 {
-                    keys = bitcoin.ECKey.fromWIF(private_key);
+                    keys = nwbs.bitcoin.ECKey.fromWIF(private_key);
                 }
                 catch(error)
                 {
                     
                 }
                 var blockchain_key = blockchains.key(chain);
-                var blockchain_obj = bitcoin.networks[blockchain_key];
+                var blockchain_obj = nwbs.bitcoin.networks[blockchain_key];
                 if(keys)
                 {
                     keys.priv = private_key;
@@ -197,7 +197,7 @@
         var is_array = false;
         var secrets = secret;
         var blockchain_key = blockchains.key(blockchain);
-        var blockchain_obj = bitcoin.networks[blockchain_key];
+        var blockchain_obj = nwbs.bitcoin.networks[blockchain_key];
         if(typeof raw == 'undefined') raw = false;
         if(typeof number_of_keys != 'undefined' && parseInt(number_of_keys) > 1)
         {
@@ -210,22 +210,20 @@
             {
                 for (i = 0; i < parseInt(number_of_keys); i++) 
                 {
-                    var hash = bitcoin.crypto.sha256(secrets);
-                    var raw_keys = bitcoin.HDNode.fromSeedBuffer(hash, blockchain_obj);
+                    var hash = nwbs.bitcoin.crypto.sha256(secrets);
+                    var raw_keys = nwbs.bitcoin.HDNode.fromSeedBuffer(hash, blockchain_obj);
                     keys.push({
-                        pub: raw_keys.pubKey.getAddress(blockchain_obj).toString(),
-                        hex: raw_keys.pubKey.toHex(),
-                        priv: raw_keys.privKey.toWIF(blockchain_obj)
+                        pub: raw_keys.keyPair.getAddress(blockchain_obj).toString(),
+                        priv: raw_keys.keyPair.toWIF(blockchain_obj)
                     });
-                    secrets = CryptoJS.SHA3(secrets + raw_keys.privKey.toWIF(blockchain_obj), { outputLength: 512 }).toString();
                 }
                 if(raw) keys.raw = raw_keys;
                 return keys;
             }
             else
             {
-                var hash = bitcoin.crypto.sha256(secrets);
-                var raw_keys = bitcoin.HDNode.fromSeedBuffer(hash, blockchain_obj);
+                var hash = nwbs.bitcoin.crypto.sha256(secrets);
+                var raw_keys = nwbs.bitcoin.HDNode.fromSeedBuffer(hash, blockchain_obj);
                 if(typeof indexes != 'undefined' && $.isArray(indexes))
                 {
                     $.each(indexes, function(k, index)
@@ -233,8 +231,8 @@
                         raw_keys = raw_keys.derive(index);
                     });
                 }
-                keys.pub = raw_keys.pubKey.getAddress(blockchain_obj).toString();
-                keys.priv = raw_keys.privKey.toWIF(blockchain_obj);
+                keys.pub = raw_keys.keyPair.getAddress(blockchain_obj).toString();
+                keys.priv = raw_keys.keyPair.toWIF(blockchain_obj);
                 if(raw) keys.raw = raw_keys;
                 return keys;
             }
@@ -262,7 +260,7 @@
     
     blockchains.raw = function(return_to, private_keys, inputs, outputs, this_fee, amount_to_send, data, sign_tx, script)
     {
-        tx = new bitcoin.TransactionBuilder();
+        tx = new nwbs.bitcoin.TransactionBuilder();
         
         if(typeof sign_tx == 'undefined') sign_tx = true;
         
@@ -275,7 +273,7 @@
         var debug = false;
         if(typeof private_keys == 'string')
         {
-            key = bitcoin.ECKey.fromWIF(private_keys);
+            key = nwbs.bitcoin.ECKey.fromWIF(private_keys);
         }
         else if($.isArray(private_keys))
         {
@@ -314,10 +312,10 @@
             if(typeof data == 'string' && data)
             {
                 var op = Crypto.util.base64ToBytes(btoa(data));
-                var op_out = bitcoin.Script.fromHex(op).toBuffer();
-                var op_return = bitcoin.Script.fromChunks(
+                var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
+                var op_return = nwbs.bitcoin.Script.fromChunks(
                 [
-                    bitcoin.opcodes.OP_RETURN,
+                    nwbs.bitcoin.opcodes.OP_RETURN,
                     op_out
                 ]);
                 tx.addOutput(op_return, 0);
@@ -337,10 +335,10 @@
             if(typeof data == 'string' && data)
             {
                 var op = Crypto.util.base64ToBytes(btoa(data));
-                var op_out = bitcoin.Script.fromHex(op).toBuffer();
-                var op_return = bitcoin.Script.fromChunks(
+                var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
+                var op_return = nwbs.bitcoin.Script.fromChunks(
                 [
-                    bitcoin.opcodes.OP_RETURN,
+                    nwbs.bitcoin.opcodes.OP_RETURN,
                     op_out
                 ]);
                 tx.addOutput(op_return, 0);
@@ -352,10 +350,10 @@
         if(typeof data == 'string' && data && (bs_op_code != 1 && bs_op_code != 2))
         {
             var op = Crypto.util.base64ToBytes(btoa(data));
-            var op_out = bitcoin.Script.fromHex(op).toBuffer();
-            var op_return = bitcoin.Script.fromChunks(
+            var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
+            var op_return = nwbs.bitcoin.Script.fromChunks(
             [
-                bitcoin.opcodes.OP_RETURN,
+                nwbs.bitcoin.opcodes.OP_RETURN,
                 op_out
             ]);
             tx.addOutput(op_return, 0);
@@ -376,7 +374,7 @@
                 {
                     $.each(private_keys, function(private_key, key)
                     {
-                        tx.sign(k, bitcoin.ECKey.fromWIF(key), bitcoin.Script.fromHex(redeem_script));
+                        tx.sign(k, nwbs.bitcoin.ECKey.fromWIF(key), nwbs.bitcoin.Script.fromHex(redeem_script));
                     });
                 }
                 else

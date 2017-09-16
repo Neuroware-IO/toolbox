@@ -1029,7 +1029,7 @@
                             else if(parse_type == 'hextohash')
                             {
                                 var address = results[arrayed_result[0]];
-                                var hash = bitcoin.Address.fromBase58Check(address);
+                                var hash = nwbs.bitcoin.Address.fromBase58Check(address);
                                 res_01 = hash.toString();
                             }
                             else if(parse_type == 'utctoepoch')

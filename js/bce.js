@@ -968,12 +968,11 @@ var bce = {
                     if(!pw) pw = '';
                     var hash = nwbs.bitcoin.crypto.sha256(salt + seed + pw + chain).toString('hex');
                     var keys = $.fn.blockstrap.blockchains.keys(hash, chain, 1, false, true);
-                    var keys = $.fn.blockstrap.blockchains.keys(hash, chain, 1, false, true);
-                    $('form#bce-key-pair #bce-hd-private').val(keys.raw.toString());
+                    $('form#bce-key-pair #bce-hd-private').val(keys.raw.toBase58());
                     $('form#bce-key-pair #bce-private').val(keys.priv);
-                    $('form#bce-key-pair #bce-public').val(keys.raw.pubKey.toHex());
+                    $('form#bce-key-pair #bce-public').val(keys.raw.getPublicKeyBuffer().toString('hex'));
                     $('form#bce-key-pair #bce-address').val(keys.pub);
-                    $('form#bce-key-pair #bce-hd-public').val(keys.raw.neutered().toString());
+                    $('form#bce-key-pair #bce-hd-public').val(keys.raw.neutered().toBase58());
                 }
                 else
                 {
