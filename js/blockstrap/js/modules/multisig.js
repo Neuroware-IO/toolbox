@@ -69,6 +69,8 @@
         var address = false;
         var key_pairs = keys;
         var lib = $.fn.blockstrap.settings.blockchains[chain].lib;
+        var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
+        var network = nwbs.bitcoin.networks[bitcoinjs_chain];
         if(typeof keys == 'number')
         {
             key_pairs = $.fn.blockstrap.blockchains.keys(seed, chain, keys);
@@ -78,7 +80,7 @@
             var keys = [];
             var redeem_script = nwbs.bitcoin.script.multisig.output.encode(2, key_pairs); // 2 of 3
             var script_key = nwbs.bitcoin.script.scriptHash.output.encode(nwbs.bitcoin.crypto.hash160(redeem_script));
-            var address = nwbs.bitcoin.address.fromOutputScript(script_key);
+            var address = nwbs.bitcoin.address.fromOutputScript(script_key, network);
             keys.push({
                 seed: hashed_seed,
                 script: redeem_script.toString('hex'),

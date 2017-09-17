@@ -570,6 +570,10 @@ var bce = {
                         {
                             value: 'btct',
                             text: 'Bitcoin Testnet'
+                        },
+                        {
+                            value: 'ltc',
+                            text: 'Litecoin'
                         }
                     ];  
                     html+= '<p>Generate standard key-pairs using any and (or) all of the options below. However, please note that by not using all 3 fields and (or) insecure values, you may be vulnerable. These tools are merely designed to help understand how cryptographic transactions work.</p><hr>';
@@ -808,15 +812,18 @@ var bce = {
                 if(typeof keys.depth != 'undefined' && keys.index != 'undefined')
                 {
                     var this_address = keys.getAddress().toString();
-                    var priv_key = keys.toString();
+                    var priv_key = keys.toBase58();
                     var wif = 'N/A';
-                    var pub_key = keys.neutered().toString();
-                    if(typeof keys.privKey != 'undefined') wif = keys.privKey.toWIF(network); 
+                    var pub_key = keys.neutered().toBase58();
                     if(pub_key == priv_key) priv_key = 'N/A';
+                    if(!keys.neutered())
+                    {
+                        wif = keys.keyPair.toWIF();
+                    }
                     $('form#bce-child-key input#bce-extended-address').val(this_address);
                     $('form#bce-child-key input#bce-extended-private').val(priv_key);
-                    $('form#bce-child-key input#bce-extended-wif').val(wif);
                     $('form#bce-child-key input#bce-extended-public').val(pub_key);
+                    $('form#bce-child-key input#bce-extended-wif').val(wif);
                 }
                 else
                 {
@@ -1203,6 +1210,8 @@ var bce = {
                 var priv1 = $(form).find('input#bce-private-01').val();
                 var priv2 = $(form).find('input#bce-private-02').val();
                 var fee = parseInt((parseFloat($.fn.blockstrap.settings.blockchains[chain].fee) * 100000000));
+                var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
+                var network = nwbs.bitcoin.networks[bitcoinjs_chain];
                 if(priv1 && priv2 && chain && address && to_address && to_amount)
                 {
                     // Get address from private key
@@ -1215,9 +1224,9 @@ var bce = {
                     var inputs_to_sign = [];
                     var amount_needed = parseInt((parseFloat(to_amount) * 100000000)) + fee;
                     var amount_used = 0;
-                    var keys1 = nwbs.bitcoin.ECKey.fromWIF(priv1);
-                    var keys2 = nwbs.bitcoin.ECKey.fromWIF(priv2);
-                    var tx = new nwbs.bitcoin.TransactionBuilder();
+                    var keys1 = nwbs.bitcoin.ECPair.fromWIF(priv1, network);
+                    var keys2 = nwbs.bitcoin.ECPair.fromWIF(priv2, network);
+                    var tx = new nwbs.bitcoin.TransactionBuilder(network);
                     $.fn.blockstrap.api.unspents(address, chain, function(results)
                     {
                         if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
