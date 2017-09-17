@@ -214,6 +214,7 @@
                     var raw_keys = nwbs.bitcoin.HDNode.fromSeedBuffer(hash, blockchain_obj);
                     keys.push({
                         pub: raw_keys.keyPair.getAddress(blockchain_obj).toString(),
+                        hex: raw_keys.getPublicKeyBuffer().toString('hex'),
                         priv: raw_keys.keyPair.toWIF(blockchain_obj)
                     });
                 }

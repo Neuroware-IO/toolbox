@@ -931,9 +931,9 @@ var bce = {
                 {
                     try{
                         var multisig_keys = $.fn.blockstrap.multisig.generate(false, chain, [
-                            {hex:nwbs.bitcoin.HDNode.fromBase58(key1, network).pubKey.toHex()},
-                            {hex:nwbs.bitcoin.HDNode.fromBase58(key2, network).pubKey.toHex()},
-                            {hex:nwbs.bitcoin.HDNode.fromBase58(key3, network).pubKey.toHex()}
+                            nwbs.bitcoin.HDNode.fromBase58(key1, network).getPublicKeyBuffer(),
+                            nwbs.bitcoin.HDNode.fromBase58(key2, network).getPublicKeyBuffer(),
+                            nwbs.bitcoin.HDNode.fromBase58(key3, network).getPublicKeyBuffer()
                         ], 2);
                     }
                     catch(e)
@@ -942,13 +942,23 @@ var bce = {
                     }
                     if(multisig_keys)
                     {
-                        if(typeof multisig_keys[3].address != 'undefined' && multisig_keys[3].script != 'undefined')
+                        if(typeof multisig_keys[0].address != 'undefined' && multisig_keys[0].script != 'undefined')
                         {
-                            var ms_address = multisig_keys[3].address;
-                            var ms_script = multisig_keys[3].script;
+                            var ms_address = multisig_keys[0].address;
+                            var ms_script = multisig_keys[0].script;
                             $('form#bce-multi-sig input#bce-ms-address').val(ms_address);
                             $('form#bce-multi-sig input#bce-ms-script').val(ms_script);
                         }
+                        else
+                        {
+                            $('form#bce-multi-sig input#bce-ms-address').val('');
+                            $('form#bce-multi-sig input#bce-ms-script').val('');
+                        }
+                    }
+                    else
+                    {
+                        $('form#bce-multi-sig input#bce-ms-address').val('');
+                        $('form#bce-multi-sig input#bce-ms-script').val('');
                     }
                 }
             });

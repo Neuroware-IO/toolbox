@@ -76,21 +76,15 @@
         if($.isArray(key_pairs))
         {
             var keys = [];
-            $.each(key_pairs.sort(function(a,b) {return (a.hex > b.hex) ? 1 : ((b.hex > a.hex) ? -1 : 0);} ), function(k, obj)
-            {
-                var key = nwbs.bitcoin.ECPubKey.fromHex(obj.hex);
-                keys.push(key);
-            });
-            var redeem_script = nwbs.bitcoin.scripts.multisigOutput(required, keys); // 2 of 3
-            var script_pub_key = nwbs.bitcoin.scripts.scriptHashOutput(redeem_script.getHash());
-            var lib = $.fn.blockstrap.settings.blockchains[chain].lib;
-            address = nwbs.bitcoin.Address.fromOutputScript(script_pub_key, nwbs.bitcoin.networks[lib]).toString();
-            key_pairs.push({
+            var redeem_script = nwbs.bitcoin.script.multisig.output.encode(2, key_pairs); // 2 of 3
+            var script_key = nwbs.bitcoin.script.scriptHash.output.encode(nwbs.bitcoin.crypto.hash160(redeem_script));
+            var address = nwbs.bitcoin.address.fromOutputScript(script_key);
+            keys.push({
                 seed: hashed_seed,
-                script: redeem_script.toHex(),
+                script: redeem_script.toString('hex'),
                 address: address
             });
-            return key_pairs;
+            return keys;
         }
         else
         {
