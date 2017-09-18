@@ -469,14 +469,26 @@ var bce = {
                         text: 'Bitcoin Testnet'
                     }
                 ];  
+                var encrypts = [
+                    {
+                        value: '',
+                        text: 'None'
+                    },
+                    {
+                        value: 'public',
+                        text: 'Public WIF Key'
+                    }
+                ];
                 var html = '<form id="fetch-data" class="form-horizontal">';
                 
                 html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
                 html+= bce.html.forms.input('bce-extended-key', 'HD Public Key', 'text', 'Expecting an extended public key');
                 html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
+                html+= bce.html.forms.select('bce-encrypt', 'Decryption', encrypts);
+                html+= bce.html.forms.input('bce-extra-encrypt', 'Decryption Salt', 'password', 'Add an optional custom secret');
                 html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Waiting to be fetched ...', true);
                 
-                html+= '<div class="row">';
+                html+= '<hr><div class="row">';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="fetch-data">RESET</a></div>';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-fetch">FETCH</a></div>';
                 html+= '</div>';
@@ -619,14 +631,30 @@ var bce = {
                         text: 'Bitcoin Testnet'
                     }
                 ];  
+                var encrypts = [
+                    {
+                        value: '',
+                        text: 'None'
+                    },
+                    {
+                        value: 'private',
+                        text: 'Private WIF Key'
+                    },
+                    {
+                        value: 'public',
+                        text: 'Public WIF Key'
+                    }
+                ];
                 var html = '<form id="post-data" class="form-horizontal">';
                
                 html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
                 html+= bce.html.forms.input('bce-extended-key', 'HD Private Key', 'text', 'Expecting an extended private key');
                 html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Limited to 38 characters');
                 html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
+                html+= bce.html.forms.select('bce-encrypt', 'Encryption', encrypts);
+                html+= bce.html.forms.input('bce-extra-encrypt', 'Encryption Salt', 'password', 'Add an optional custom secret');
                 
-                html+= '<div class="row">';
+                html+= '<hr><div class="row">';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="post-data">RESET</a></div>';
                     html+= '<div class="col-md-6"><a href="#" class="btn btn-primary btn-block btn-post">POST</a></div>';
                 html+= '</div>';
@@ -814,12 +842,12 @@ var bce = {
                     var this_address = keys.getAddress().toString();
                     var priv_key = keys.toBase58();
                     var wif = 'N/A';
-                    var pub_key = keys.neutered().toBase58();
-                    if(pub_key == priv_key) priv_key = 'N/A';
-                    if(!keys.neutered())
+                    if(!keys.isNeutered())
                     {
                         wif = keys.keyPair.toWIF();
                     }
+                    var pub_key = keys.neutered().toBase58();
+                    if(pub_key == priv_key) priv_key = 'N/A';
                     $('form#bce-child-key input#bce-extended-address').val(this_address);
                     $('form#bce-child-key input#bce-extended-private').val(priv_key);
                     $('form#bce-child-key input#bce-extended-public').val(pub_key);
@@ -846,6 +874,8 @@ var bce = {
                 var extended_key = $(form).find('input#bce-extended-key').val();
                 var path = $(form).find('input#bce-derive-path').val();
                 var data_input = $(form).find('input#bce-to-data');
+                var encryption_method = $(form).find('select#bce-encrypt').val();
+                var encryption_salt = $(form).find('input#bce-extra-encrypt').val();
                 
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
                 var network = nwbs.bitcoin.networks[bitcoinjs_chain];
@@ -888,20 +918,41 @@ var bce = {
                         });
                     }
                     var address = keys.keyPair.getAddress(network).toString('hex');
+                    var public_key = keys.keyPair.getPublicKeyBuffer(network).toString('hex');
                     $.fn.blockstrap.api.transactions(address, chain, function(obj)
                     {
+                        var output_length = obj.txs[0].outputs.length;
                         var data = false;
                         if(
                             typeof obj.txs != 'undefined'
                             && $.isArray(obj.txs)
                             && typeof obj.txs[0].outputs != 'undefined'
                             && $.isArray(obj.txs[0].outputs)
-                            && typeof obj.txs[0].outputs[1].data_string != 'undefined'
+                            && typeof obj.txs[0].outputs[output_length - 1].data_string != 'undefined'
                         ){
-                            data = obj.txs[0].outputs[1].data_string;
+                            data = obj.txs[0].outputs[output_length - 1].data_string;
                         }
                         if(data)
                         {
+                            if(encryption_method || encryption_salt)
+                            {
+                                var encrypt = false;
+                                if(encryption_method == 'public')
+                                {
+                                    if(encryption_salt) encrypt = encryption_salt + '_' + public_key;
+                                    else encrypt = public_key;
+                                }
+                                else if(!encryption_method && encryption_salt)
+                                {
+                                    encrypt = encryption_salt;
+                                }
+                                if(encrypt)
+                                {
+                                    var value = JSON.parse(JSON.stringify(data));
+                                    var hash_of_key = CryptoJS.SHA3(encrypt, { outputLength: 512 }).toString();
+                                    data = CryptoJS.AES.decrypt(value, hash_of_key).toString(CryptoJS.enc.Utf8);
+                                }
+                            }
                             $(data_input).val(data);
                             $(data_input).parent().parent().effect('shake');
                         }
@@ -1059,6 +1110,8 @@ var bce = {
                 var extended_key = $(form).find('input#bce-extended-key').val();
                 var to_data = $(form).find('input#bce-to-data').val();
                 var path = $(form).find('input#bce-derive-path').val();
+                var encryption_method = $(form).find('select#bce-encrypt').val();
+                var encryption_salt = $(form).find('input#bce-extra-encrypt').val();
                 var fee = false;
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
                 var network = nwbs.bitcoin.networks[bitcoinjs_chain];
@@ -1114,6 +1167,7 @@ var bce = {
                     var private_key = keys.keyPair.toWIF();
                     var key_signer = nwbs.bitcoin.ECPair.fromWIF(private_key, network);
                     var address = keys.keyPair.getAddress(network).toString('hex');
+                    var public_key = keys.keyPair.getPublicKeyBuffer(network).toString('hex');
                     
                     $.fn.blockstrap.api.unspents(address, chain, function(results)
                     {
@@ -1154,6 +1208,30 @@ var bce = {
                             });
                             if(typeof to_data == 'string' && to_data)
                             {
+                                if(encryption_method || encryption_salt)
+                                {
+                                    var encrypt = false;
+                                    if(encryption_method == 'private')
+                                    {
+                                        if(encryption_salt) encrypt = encryption_salt + '_' + private_key;
+                                        else encrypt = private_key;
+                                    }
+                                    else if(encryption_method == 'public')
+                                    {
+                                        if(encryption_salt) encrypt = encryption_salt + '_' + public_key;
+                                        else encrypt = public_key;
+                                    }
+                                    else if(!encryption_method && encryption_salt)
+                                    {
+                                        encrypt = encryption_salt;
+                                    }
+                                    if(encrypt)
+                                    {
+                                        var value = JSON.parse(JSON.stringify(to_data));
+                                        var hash_of_key = CryptoJS.SHA3(encrypt, { outputLength: 512 }).toString();
+                                        to_data = CryptoJS.AES.encrypt(value, hash_of_key).toString();
+                                    }
+                                }
                                 var op = Crypto.util.base64ToBytes(btoa(to_data));
                                 var op_return_data = nwbs.bitcoin.script.compile(op);
                                 var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
