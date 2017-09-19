@@ -23,6 +23,7 @@ var bce = {
             bce.buttons.child();
             bce.buttons.fetch();
             bce.buttons.inputs();
+            bce.buttons.methods();
             bce.buttons.multi();
             bce.buttons.outputs();
             bce.buttons.pair();
@@ -47,6 +48,25 @@ var bce = {
                 var new_wrapper = $('.input-wrapper[data-index="'+(input_count + 1)+'"]');
                 $(new_wrapper).find('.control-label').attr('for', 'input-private-'+(input_count + 1)).text('Private Key '+(input_count + 1));
                 $(new_wrapper).find('.input-private').attr('id', 'input-private-'+(input_count + 1)).val('');
+            });
+        },
+        methods: function()
+        {   
+            $('body').on('change', 'select#bce-method', function(e)
+            {
+                e.preventDefault();
+                var value = $(this).val();
+                var form = $(this).parent().parent().parent();
+                $(form).find('.form-section-wrapper').removeClass('hidden');
+                $(form).find('.form-section-wrapper').hide(250, function()
+                {
+                    $(form).find('.form-section-wrapper.'+value).show(250);
+                });
+                $(form).find('.btn-spend').text('SPEND');
+                if(value == 'prep')
+                {
+                    $(form).find('.btn-spend').text('PREPARE');
+                }
             });
         },
         multi: function()
@@ -705,19 +725,61 @@ var bce = {
                         value: 'btct',
                         text: 'Bitcoin Testnet'
                     }
-                ];  
+                ];
+                var methods = [
+                    {
+                        value: 'live',
+                        text: 'Both Keys - Same Browser'
+                    },
+                    {
+                        value: 'prep',
+                        text: 'Prepare TX - Send for Relaying'
+                    },
+                    {
+                        value: 'relay',
+                        text: 'Import TX - Sign for Relaying'
+                    }
+                ];
                 var html = '<form id="bce-spend" class="form-horizontal">';
                     html+= '<p>Send a transaction from a multi-signature account using the form below:</p>';
                     html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
+                    html+= bce.html.forms.select('bce-method', 'Method', methods);
+                
+                    html+= '<div class="form-section-wrapper live">';
+                
                     html+= bce.html.forms.input('bce-ms-address', 'Multi-Sig Address', 'text', 'The address to check / use ...', false, 'lookup');
                     html+= bce.html.forms.input('bce-ms-redeem', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
-                    html+= '<br><span class="alert alert-warning alert-block">waiting for inputs</span><br>';
+                    html+= '<br><span class="alert alert-warning alert-live alert-block">waiting for inputs</span><br>';
                     html+= bce.html.forms.input('bce-to-address', 'To Address', 'text', 'Where to send...?');
                     html+= bce.html.forms.input('bce-to-amount', 'Amount', 'text', 'How much to send...?');
                     html+= bce.html.forms.input('bce-to-data', 'Optional Data', 'text', 'Limited to 38 characters');
                     html+= '<hr>';
                     html+= bce.html.forms.input('bce-private-01', '1st Private Key', 'text', 'Any one of the three ...');
                     html+= bce.html.forms.input('bce-private-02', '2nd Private Key', 'text', 'Any one of the three ...');
+                
+                    html+= '</div>';
+                    html+= '<div class="form-section-wrapper prep hidden">';
+                
+                    html+= bce.html.forms.input('bce-ms-address-prep', 'Multi-Sig Address', 'text', 'The address to check / use ...', false, 'lookup');
+                    html+= bce.html.forms.input('bce-ms-redeem-prep', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
+                    html+= '<br><span class="alert alert-warning alert-prep alert-block">waiting for inputs</span><br>';
+                    html+= bce.html.forms.input('bce-to-address-prep', 'To Address', 'text', 'Where to send...?');
+                    html+= bce.html.forms.input('bce-to-amount-prep', 'Amount', 'text', 'How much to send...?');
+                    html+= bce.html.forms.input('bce-to-data-prep', 'Optional Data', 'text', 'Limited to 38 characters');
+                    html+= '<hr>';
+                    html+= bce.html.forms.input('bce-private-01-prep', '1st Private Key', 'text', 'Any one of the three ...');
+                
+                    html+= '</div>';
+                
+                    html+= '<div class="form-section-wrapper relay hidden">';
+                
+                    html+= bce.html.forms.input('bce-ms-redeem-relay', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
+                    html+= bce.html.forms.input('bce-raw-tx-relay', 'Imported Raw TX', 'text', 'Can be decoded but not altered');
+                    html+= '<hr>';
+                    html+= bce.html.forms.input('bce-private-02-relay', '2nd Private Key', 'text', 'Any one of the three ...');
+                
+                    html+= '</div>';
+                
                     html+= '<hr>';
                     html+= '<div class="row">';
                         html+= '<div class="col-md-6"><a href="#" class="btn btn-default btn-block btn-reset" data-id="bce-spend">RESET</a></div>';
@@ -1248,6 +1310,7 @@ var bce = {
                                 var title = 'Raw Transaction';
                                 var message = '<p>This is the raw transaction - waiting to be sent:</p>';
                                 message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
+                                message+= '<pre class="hidden" data-raw="'+raw+'" data-chain="'+chain+'"><code></code></pre>';
                                 message+= '<div class="well" style="margin-bottom: 0">';
                                     message+= '<div class="row">';
                                         message+= '<div class="col-md-2"></div>';
@@ -1280,21 +1343,49 @@ var bce = {
                 e.preventDefault();
                 var form = $(this).parent().parent().parent();
                 var chain = $(form).find('select#bce-chain').val();
+                var method = $(form).find('select#bce-method').val();
                 var address = $(form).find('input#bce-ms-address').val();
+                var address_prep = $(form).find('input#bce-ms-address-prep').val();
                 var redeem = $(form).find('input#bce-ms-redeem').val();
+                var redeem_prep = $(form).find('input#bce-ms-redeem-prep').val();
+                var redeem_relay = $(form).find('input#bce-ms-redeem-relay').val();
                 var to_data = $(form).find('input#bce-to-data').val();
+                var to_data_prep = $(form).find('input#bce-to-data-prep').val();
                 var to_address = $(form).find('input#bce-to-address').val();
+                var to_address_prep = $(form).find('input#bce-to-address-prep').val();
                 var to_amount = $(form).find('input#bce-to-amount').val();
+                var raw_tx = $(form).find('input#bce-raw-tx-relay').val();
+                var to_amount_prep = $(form).find('input#bce-to-amount-prep').val();
                 var priv1 = $(form).find('input#bce-private-01').val();
+                var priv1_prep = $(form).find('input#bce-private-01-prep').val();
                 var priv2 = $(form).find('input#bce-private-02').val();
+                var priv2_relay = $(form).find('input#bce-private-02-relay').val();
                 var fee = parseInt((parseFloat($.fn.blockstrap.settings.blockchains[chain].fee) * 100000000));
                 var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
                 var network = nwbs.bitcoin.networks[bitcoinjs_chain];
+                
+                if(method == 'prep')
+                {
+                    priv1 = priv1_prep;
+                    priv2 = true;
+                    redeem = redeem_prep;
+                    address = address_prep;
+                    to_data = to_data_prep;
+                    to_address = to_address_prep;
+                    to_amount = to_amount_prep;
+                }
+                else if(method == 'relay')
+                {
+                    priv1 = true;
+                    priv2 = priv2_relay;
+                    address = true;
+                    to_address = true;
+                    to_amount = true;
+                    redeem = redeem_relay;
+                }
+                
                 if(priv1 && priv2 && chain && address && to_address && to_amount)
                 {
-                    // Get address from private key
-                    // Check unspents for address
-                    // Construct new TX with change returning to address
                     var checked = 0;
                     var inputs = [];
                     var outputs = [];
@@ -1302,64 +1393,112 @@ var bce = {
                     var inputs_to_sign = [];
                     var amount_needed = parseInt((parseFloat(to_amount) * 100000000)) + fee;
                     var amount_used = 0;
-                    var keys1 = nwbs.bitcoin.ECPair.fromWIF(priv1, network);
-                    var keys2 = nwbs.bitcoin.ECPair.fromWIF(priv2, network);
-                    var tx = new nwbs.bitcoin.TransactionBuilder(network);
+                    
+                    if(method == 'relay')
+                    {
+                        amount_needed = 0;
+                        amount_used = 1;
+                    }
+                    
+                    if(method != 'prep')
+                    {
+                        var keys2 = nwbs.bitcoin.ECPair.fromWIF(priv2, network);
+                    }
+                    else
+                    {
+                        var keys1 = nwbs.bitcoin.ECPair.fromWIF(priv1, network);
+                    }
+                    
+                    if(method == 'relay')
+                    {
+                        // Recover transaction from raw_transaction created by bitcoind || or raw_signed_transaction
+                        var txt  = nwbs.bitcoin.Transaction.fromHex(raw_tx);
+                        var tx = nwbs.bitcoin.TransactionBuilder.fromTransaction(txt);
+                        tx.network = network;
+                    }
+                    else
+                    {
+                        var tx = new nwbs.bitcoin.TransactionBuilder(network);
+                    }
+                    
                     $.fn.blockstrap.api.unspents(address, chain, function(results)
                     {
-                        if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
+                        if(method != 'relay')
                         {
-                            $.each(results, function(i)
+                            if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
                             {
-                                var unspent = results[i];
-                                if(amount_used < amount_needed)
+                                $.each(results, function(i)
                                 {
-                                    tx.addInput(unspent.txid, unspent.index);
-                                    amount_used = amount_used + unspent.value;
-                                    inputs_to_sign.push(input_index);
-                                    input_index++;
-                                }
-                            });
+                                    var unspent = results[i];
+                                    if(amount_used < amount_needed)
+                                    {
+                                        tx.addInput(unspent.txid, unspent.index);
+                                        amount_used = amount_used + unspent.value;
+                                        inputs_to_sign.push(input_index);
+                                        input_index++;
+                                    }
+                                });
+                            }
                         }
                         if(amount_used >= amount_needed)
                         {
-                            outputs.push({
-                                address: to_address,
-                                value: parseInt((parseFloat(to_amount) * 100000000))
-                            });
-                            var change = amount_used - amount_needed;
-                            if(change > 0)
+                            var reedeem_script = Crypto.util.hexToBytes(redeem);
+                            var redeem_data = nwbs.bitcoin.script.compile(reedeem_script);
+                            if(method != 'relay')
                             {
                                 outputs.push({
-                                    address: address,
-                                    value: change
+                                    address: to_address,
+                                    value: parseInt((parseFloat(to_amount) * 100000000))
+                                });
+                                var change = amount_used - amount_needed;
+                                if(change > 0)
+                                {
+                                    outputs.push({
+                                        address: address,
+                                        value: change
+                                    });
+                                }
+                                $.each(outputs, function(i, o)
+                                {
+                                    tx.addOutput(o.address, o.value);
+                                });
+                                if(typeof to_data == 'string' && to_data)
+                                {
+                                    var op = Crypto.util.base64ToBytes(btoa(to_data));
+                                    var op_return_data = nwbs.bitcoin.script.compile(op);
+                                    var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
+                                    tx.addOutput(op_return, 0);
+                                }
+                                $.each(inputs_to_sign, function(k)
+                                {
+                                    tx.sign(k, keys1, redeem_data);
+                                    if(method != 'prep')
+                                    {
+                                        tx.sign(k, keys2, redeem_data);
+                                    }
                                 });
                             }
-                            $.each(outputs, function(i, o)
+                            else
                             {
-                                tx.addOutput(o.address, o.value);
-                            });
-                            if(typeof to_data == 'string' && to_data)
-                            {
-                                var op = Crypto.util.base64ToBytes(btoa(to_data));
-                                var op_return_data = nwbs.bitcoin.script.compile(op);
-                                var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
-                                tx.addOutput(op_return, 0);
+                                for(k = 0; k < tx.inputs.length; k++)
+                                {   
+                                    tx.sign(k, keys2, redeem_data);
+                                }
                             }
-                            $.each(inputs_to_sign, function(k)
-                            {
-                                var reedeem_script = Crypto.util.hexToBytes(redeem);
-                                var redeem_data = nwbs.bitcoin.script.compile(reedeem_script);
-                                tx.sign(k, keys1, redeem_data);
-                                tx.sign(k, keys2, redeem_data);
-                            });
                             var built = tx.build();
                             var raw = built.toHex();
                             if(raw)
                             {
                                 var title = 'Raw Transaction';
                                 var message = '<p>This is the raw transaction - waiting to be sent:</p>';
+                                
+                                if(method == 'prep')
+                                {
+                                    message = '<p>This is the raw transaction - waiting for second signature:</p>';
+                                }
+                                
                                 message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
+                                message+= '<pre class="hidden" data-raw="'+raw+'" data-chain="'+chain+'"><code></code></pre>';
                                 message+= '<div class="well" style="margin-bottom: 0">';
                                     message+= '<div class="row">';
                                         message+= '<div class="col-md-2"></div>';
@@ -1367,7 +1506,16 @@ var bce = {
                                             message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
                                         message+= '</div>';
                                         message+= '<div class="col-md-4">';
-                                            message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
+                                            
+                                            if(method == 'prep')
+                                            {
+                                                message+= '<a class="btn btn-block">forward</a>';
+                                            }
+                                            else
+                                            {
+                                                message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
+                                            }
+                                
                                         message+= '</div>';
                                         message+= '<div class="col-md-2"></div>';
                                     message+= '</div>';
