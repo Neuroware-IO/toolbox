@@ -1342,18 +1342,16 @@ var bce = {
                             if(typeof to_data == 'string' && to_data)
                             {
                                 var op = Crypto.util.base64ToBytes(btoa(to_data));
-                                var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
-                                var op_return = nwbs.bitcoin.Script.fromChunks(
-                                [
-                                    nwbs.bitcoin.opcodes.OP_RETURN,
-                                    op_out
-                                ]);
+                                var op_return_data = nwbs.bitcoin.script.compile(op);
+                                var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
                                 tx.addOutput(op_return, 0);
                             }
                             $.each(inputs_to_sign, function(k)
                             {
-                                tx.sign(k, keys1, nwbs.bitcoin.Script.fromHex(redeem));
-                                tx.sign(k, keys2, nwbs.bitcoin.Script.fromHex(redeem));
+                                var reedeem_script = Crypto.util.hexToBytes(redeem);
+                                var redeem_data = nwbs.bitcoin.script.compile(reedeem_script);
+                                tx.sign(k, keys1, redeem_data);
+                                tx.sign(k, keys2, redeem_data);
                             });
                             var built = tx.build();
                             var raw = built.toHex();
@@ -1553,13 +1551,9 @@ var bce = {
 
                                                     if(typeof data == 'string' && data)
                                                     {
-                                                        var op = Crypto.util.base64ToBytes(btoa(data));
-                                                        var op_out = nwbs.bitcoin.Script.fromHex(op).toBuffer();
-                                                        var op_return = nwbs.bitcoin.Script.fromChunks(
-                                                        [
-                                                            nwbs.bitcoin.opcodes.OP_RETURN,
-                                                            op_out
-                                                        ]);
+                                                        var op = Crypto.util.base64ToBytes(btoa(to_data));
+                                                        var op_return_data = nwbs.bitcoin.script.compile(op);
+                                                        var op_return = nwbs.bitcoin.script.nullData.output.encode(op_return_data);
                                                         tx.addOutput(op_return, 0);
                                                     }
 
