@@ -42,7 +42,7 @@
         <div class="row">
             <div class="col-md-3"></div>
             <div class="col-md-6">
-                <form id="tx-control" class="form-horizontal">
+                <form id="extra-api-keys" class="form-horizontal">
                     <div class="form-group">
                         <label for="ad-hoc-api-key" class="col-sm-5 control-label">Optional Key</label>
                         <div class="col-sm-7">
@@ -84,7 +84,7 @@
                             <div class="form-group">
                                 <label for="input-private-1" class="col-sm-5 control-label">Private Key 1</label>
                                 <div class="col-sm-7">
-                                    <input type="text" class="form-control input-private" id="input-private-1" placeholder="Private key to use?">
+                                    <input type="text" class="form-control input-private" id="input-private-1" placeholder="Private key to use?" autocomplete="off">
                                 </div>
                             </div>
                         </div>
@@ -111,19 +111,13 @@
                         <div class="form-group">
                             <label for="fee" class="col-sm-5 control-label">Fee</label>
                             <div class="col-sm-7">
-                                <input type="text" class="form-control" id="fee" placeholder="Leave blank for default" />
+                                <input type="text" class="form-control" id="fee" placeholder="Leave blank for default" autocomplete="off" />
                             </div>
                         </div>
                         <div class="form-group">
                             <label for="data" class="col-sm-5 control-label">Optional Data</label>
                             <div class="col-sm-7">
-                                <input type="text" class="form-control" id="data" placeholder="Data added to chain" />
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label for="path" class="col-sm-5 control-label">Optional Path</label>
-                            <div class="col-sm-7">
-                                <input type="text" class="form-control" id="path" placeholder="Comma separated list" />
+                                <input type="text" class="form-control" id="data" placeholder="Data added to chain" autocomplete="off" />
                             </div>
                         </div>
                         <hr>
@@ -151,13 +145,13 @@
                             <div class="form-group">
                                 <label for="output-address-1" class="col-sm-5 control-label address-label">Address 1</label>
                                 <div class="col-sm-7">
-                                    <input type="text" class="form-control input-address" id="output-address-1" placeholder="Send to this address">
+                                    <input type="text" class="form-control input-address" id="output-address-1" placeholder="Send to this address" autocomplete="off">
                                 </div>
                             </div>
                             <div class="form-group">
                                 <label for="amount-1" class="col-sm-5 control-label amount-label">Amount 1</label>
                                 <div class="col-sm-7">
-                                    <input type="text" class="form-control send-amount" id="amount-1" placeholder="How much to send?" />
+                                    <input type="text" class="form-control send-amount" id="amount-1" placeholder="How much to send?" autocomplete="off" />
                                 </div>
                             </div>
                         </div>

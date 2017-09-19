@@ -901,7 +901,7 @@ var bce = {
                 }
                 if(typeof keys.depth != 'undefined' && keys.index != 'undefined')
                 {
-                    var this_address = keys.getAddress().toString();
+                    var this_address = keys.keyPair.getAddress(network).toString('hex');
                     var priv_key = keys.toBase58();
                     var wif = 'N/A';
                     if(!keys.isNeutered())
@@ -1592,7 +1592,7 @@ var bce = {
                 var chain = $(form).find('select#chain').val();
                 var amount = 0;
                 var fee = $(form).find('input#fee').val();
-                var data = $(form).find('input#data').val();
+                var to_data = $(form).find('input#data').val();
                 var title = 'Warning';
                 var message = 'Need to select a valid blockchain';
                 if(
@@ -1645,17 +1645,14 @@ var bce = {
                                     var outputs = [];
                                     var amount_needed = amount + fee;
                                     var amount_used = 0;
-                                    var tx = new nwbs.bitcoin.TransactionBuilder();
-                                    
+                                    var tx = new nwbs.bitcoin.TransactionBuilder(network);
                                     $.each(private_keys, function(key_index)
                                     {
-                            
-                                        var keys = nwbs.bitcoin.ECKey.fromWIF(private_keys[key_index]);
-                                        var address = keys.pub.getAddress(network).toString();
+                                        var keys = nwbs.bitcoin.ECPair.fromWIF(private_keys[key_index], network);
+                                        var address = keys.getAddress(network).toString('hex');
                                         $.fn.blockstrap.api.unspents(address, chain, function(results)
                                         {
                                             checked++;
-                                            
                                             if($.isArray(results) && blockstrap_functions.array_length(results) > 0)
                                             {
                                                 $.each(results, function(i, o)
@@ -1669,8 +1666,6 @@ var bce = {
                                                     }
                                                 });
                                             }
-                                            
-                                            
                                             if(amount_used >= amount_needed)
                                             {
                                                 if(checked >= blockstrap_functions.array_length(private_keys))
@@ -1697,7 +1692,7 @@ var bce = {
                                                         tx.addOutput(o.address, o.value);
                                                     });
 
-                                                    if(typeof data == 'string' && data)
+                                                    if(typeof to_data == 'string' && to_data)
                                                     {
                                                         var op = Crypto.util.base64ToBytes(btoa(to_data));
                                                         var op_return_data = nwbs.bitcoin.script.compile(op);
