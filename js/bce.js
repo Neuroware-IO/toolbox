@@ -429,6 +429,29 @@ var bce = {
     },
     html: {
         forms: {
+            checks: function()
+            {
+                $('body').on('keyup', '.data-length-check', function(e)
+                {
+                    var input = $(this);
+                    var form = $('#' + $(input).attr('data-form-id'));
+                    var chain = $(form).find('#' + $(input).attr('data-chain-id')).val();
+                    var data_length_limit = 0;
+                    if(
+                        typeof $.fn.blockstrap.settings.blockchains[chain] != 'undefined'
+                        && typeof $.fn.blockstrap.settings.blockchains[chain].op_limit != 'undefined'
+                    ){
+                        data_length_limit = parseInt($.fn.blockstrap.settings.blockchains[chain].op_limit);
+                        if(
+                            $(input).val().length > 0 
+                            && data_length_limit > 0 
+                            && $(input).val().length > data_length_limit
+                        ){
+                            $(input).val('').attr('placeholder', 'Limit of ' + data_length_limit + ' characters');
+                        }
+                    }
+                });
+            },
             child: function()
             {
                 var chains = [
@@ -516,10 +539,12 @@ var bce = {
                 html+= '</form>';
                 return html;
             },
-            input: function(id, label, type, placeholder, readonly, button)
+            input: function(id, label, type, placeholder, readonly, button, css, attr)
             {
                 if(typeof button == 'undefined') button = false;
                 if(typeof placeholder == 'undefined') placeholder = '';
+                if(typeof css == 'undefined' || !css) css = '';
+                if(typeof attr == 'undefined' || !attr) attr = '';
                 if(typeof readonly == 'undefined' || !readonly) readonly = '';
                 else readonly = 'readonly="readonly"';
                 if(typeof id != 'undefined' && typeof label != 'undefined')
@@ -540,7 +565,7 @@ var bce = {
                         html+= '<div class="col-sm-7">';
                             if(typeof type != 'undefined' && (type == 'text' || type  == 'password'))
                             {
-                                html+= '<input type="'+type+'" class="form-control" id="'+id+'" placeholder="'+placeholder+'" '+readonly+' />';
+                                html+= '<input type="'+type+'" class="form-control ' + css + '" id="'+id+'" placeholder="'+placeholder+'" '+readonly+' ' + attr + ' />';
                             }
                         html+= '</div>';
                     html+= '</div>';
@@ -669,7 +694,7 @@ var bce = {
                
                 html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
                 html+= bce.html.forms.input('bce-extended-key', 'HD Private Key', 'text', 'Expecting an extended private key');
-                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Limited to 38 characters');
+                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Added to blockchain', '', false, 'data-length-check', 'data-form-id="post-data" data-chain-id="bce-chain"');
                 html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
                 html+= bce.html.forms.select('bce-encrypt', 'Encryption', encrypts);
                 html+= bce.html.forms.input('bce-extra-encrypt', 'Encryption Salt', 'password', 'Add an optional custom secret');
@@ -752,7 +777,7 @@ var bce = {
                     html+= '<br><span class="alert alert-warning alert-live alert-block">waiting for inputs</span><br>';
                     html+= bce.html.forms.input('bce-to-address', 'To Address', 'text', 'Where to send...?');
                     html+= bce.html.forms.input('bce-to-amount', 'Amount', 'text', 'How much to send...?');
-                    html+= bce.html.forms.input('bce-to-data', 'Optional Data', 'text', 'Limited to 38 characters');
+                    html+= bce.html.forms.input('bce-to-data', 'Optional Data', 'text', 'Added to blockchain', false, false, 'data-length-check', 'data-form-id="bce-spend" data-chain-id="bce-chain"');
                     html+= '<hr>';
                     html+= bce.html.forms.input('bce-private-01', '1st Private Key', 'text', 'Any one of the three ...');
                     html+= bce.html.forms.input('bce-private-02', '2nd Private Key', 'text', 'Any one of the three ...');
@@ -765,7 +790,7 @@ var bce = {
                     html+= '<br><span class="alert alert-warning alert-prep alert-block">waiting for inputs</span><br>';
                     html+= bce.html.forms.input('bce-to-address-prep', 'To Address', 'text', 'Where to send...?');
                     html+= bce.html.forms.input('bce-to-amount-prep', 'Amount', 'text', 'How much to send...?');
-                    html+= bce.html.forms.input('bce-to-data-prep', 'Optional Data', 'text', 'Limited to 38 characters');
+                    html+= bce.html.forms.input('bce-to-data-prep', 'Optional Data', 'text', 'Added to blockchain', '', false, 'data-length-check', 'data-form-id="bce-spend" data-chain-id="bce-chain"');
                     html+= '<hr>';
                     html+= bce.html.forms.input('bce-private-01-prep', '1st Private Key', 'text', 'Any one of the three ...');
                 
@@ -791,6 +816,7 @@ var bce = {
         },
         init: function()
         {
+            bce.html.forms.checks();
             $('span.api-provider').text($.fn.blockstrap.settings.api_service);
             $('input#ad-hoc-api-key').change(function(e)
             {
