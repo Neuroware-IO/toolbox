@@ -436,16 +436,25 @@ var bce = {
                     var input = $(this);
                     var form = $('#' + $(input).attr('data-form-id'));
                     var chain = $(form).find('#' + $(input).attr('data-chain-id')).val();
+                    var encryption_type = $(form).find('#' + $(input).attr('data-encrypt-id')).val();
                     var data_length_limit = 0;
                     if(
                         typeof $.fn.blockstrap.settings.blockchains[chain] != 'undefined'
                         && typeof $.fn.blockstrap.settings.blockchains[chain].op_limit != 'undefined'
                     ){
                         data_length_limit = parseInt($.fn.blockstrap.settings.blockchains[chain].op_limit);
+                        var data_length = $(input).val().length;
+                        if(encryption_type)
+                        {
+                            var value = $(input).val();
+                            var hash_of_key = CryptoJS.SHA3('ENCRYPTION_TYPE', { outputLength: 512 }).toString();
+                            var to_data = CryptoJS.AES.encrypt(value, hash_of_key).toString();
+                            data_length = to_data.length;
+                        }
                         if(
-                            $(input).val().length > 0 
+                            data_length > 0 
                             && data_length_limit > 0 
-                            && $(input).val().length > data_length_limit
+                            && data_length > data_length_limit
                         ){
                             $(input).val('').attr('placeholder', 'Limit of ' + data_length_limit + ' characters');
                         }
@@ -694,7 +703,7 @@ var bce = {
                
                 html+= bce.html.forms.select('bce-chain', 'Blockchain', chains);
                 html+= bce.html.forms.input('bce-extended-key', 'HD Private Key', 'text', 'Expecting an extended private key');
-                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Added to blockchain', '', false, 'data-length-check', 'data-form-id="post-data" data-chain-id="bce-chain"');
+                html+= bce.html.forms.input('bce-to-data', 'Data', 'text', 'Added to blockchain', '', false, 'data-length-check', 'data-form-id="post-data" data-chain-id="bce-chain" data-encrypt-id="bce-encrypt"');
                 html+= bce.html.forms.input('bce-derive-path', 'Child Path', 'text', 'Optional oomma separated list');
                 html+= bce.html.forms.select('bce-encrypt', 'Encryption', encrypts);
                 html+= bce.html.forms.input('bce-extra-encrypt', 'Encryption Salt', 'password', 'Add an optional custom secret');
