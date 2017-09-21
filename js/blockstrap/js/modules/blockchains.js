@@ -65,25 +65,38 @@
         return address.charAt(0);
     }
     
-    blockchains.decode = function(script_pub_key)
+    blockchains.decode = function(script_pub_key, asm)
     {
         var str = '';
-        var op_return = nwbs.bitcoin.Script.fromHex(script_pub_key).toASM();
-        var op_array = op_return.split(' ');
-        if(blockstrap_functions.array_length(op_array) == 2)
+        var op_return = false;
+        if(typeof asm == 'undefined') asm = false;
+        if(typeof script_pub_key == 'undefined') script_pub_key = false;
+        if(script_pub_key)
         {
-            var hex = op_array[1];
-            for (var i = 0; i < hex.length; i += 2)
-            {
-                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
-            }
+            op_return = nwbs.bitcoin.script.toASM(script_pub_key);
         }
-        else if(blockstrap_functions.array_length(op_array) == 5)
+        else
         {
-            var hex = op_array[2];
-            for (var i = 0; i < hex.length; i += 2)
+            op_return = asm;
+        }
+        if(op_return)
+        {
+            var op_array = op_return.split(' ');
+            if(blockstrap_functions.array_length(op_array) == 2)
             {
-                str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+                var hex = op_array[1];
+                for (var i = 0; i < hex.length; i += 2)
+                {
+                    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+                }
+            }
+            else if(blockstrap_functions.array_length(op_array) == 5)
+            {
+                var hex = op_array[2];
+                for (var i = 0; i < hex.length; i += 2)
+                {
+                    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+                }
             }
         }
         return str;

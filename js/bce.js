@@ -9,6 +9,61 @@ var bce = {
                 $.fn.blockstrap.core.modal('Derive Child Keys', html);
             });
         },
+        decode: function()
+        {
+            $('body').on('click', 'a.btn.btn-decode', function(e)
+            {
+                e.preventDefault();
+                var raw_tx = $(this).attr('data-raw');
+                var chain = $(this).attr('data-chain');
+                var wrapper = $('#' + $(this).attr('data-id'));
+                var tx = bce.tx.decode(raw_tx, chain);
+                var html = '';
+                html+= '<span class="alert alert-info alert-block">TXID: <small>' + tx.format.txid + '</small></span>';
+                html+= '<div style="text-align: center;">';
+                
+                if(tx.inputs && tx.outputs)
+                {
+                    html+= '<hr>';
+                    html+= '<div class="row">';
+                    html+= '<div class="col-sm-6">';
+                    html+= '<span class="alert alert-success alert-block">INPUTS</span>';
+
+                    $.each(tx.inputs, function(i, k)
+                    {
+                        var input = tx.inputs[i];
+                        html+= '<hr><p>TXID: <small>' + input.txid + '</small></p>';
+                        html+= '<p>Script: <small>' + input.script + '</small></p>';
+                    });
+
+                    html+= '<hr></div>';
+                    html+= '<div class="col-sm-6">';
+                    html+= '<span class="alert alert-danger alert-block">OUTPUTS</span>';
+
+                    $.each(tx.outputs, function(i, k)
+                    {
+                        var output = tx.outputs[i];
+                        if(
+                            typeof output.scriptPubKey.addresses != 'undefined'
+                            && $.isArray(output.scriptPubKey.addresses)
+                            && output.scriptPubKey.addresses.length > 0
+                        ){
+                            html+= '<hr><p>Address: <small>' + output.scriptPubKey.addresses[0] + '</small></p>';
+                            html+= '<p>Amount: ' + output.value + '</p>';
+                        }
+                        else if(typeof output.scriptPubKey.hex != 'undefined')
+                        {
+                            html+= '<hr><span class="alert alert-warning alert-block">Data: <strong>' + $.fn.blockstrap.blockchains.decode(false, output.scriptPubKey.asm) + '</strong></span>';
+                        }
+                    });
+                    html+= '<hr></div>';
+                    html+= '</div>';
+                }
+                html+= '</div>';
+                $(wrapper).html(html);
+                $(wrapper).removeClass('hidden');
+            });
+        },
         fetch: function()
         {
             $('a.btn.fetch-data').on('click', function(e)
@@ -21,6 +76,7 @@ var bce = {
         init: function()
         {
             bce.buttons.child();
+            bce.buttons.decode();
             bce.buttons.fetch();
             bce.buttons.inputs();
             bce.buttons.methods();
@@ -1345,12 +1401,12 @@ var bce = {
                                 var title = 'Raw Transaction';
                                 var message = '<p>This is the raw transaction - waiting to be sent:</p>';
                                 message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
-                                message+= '<pre class="hidden" data-raw="'+raw+'" data-chain="'+chain+'"><code></code></pre>';
+                                message+= '<div class="hidden" id="decoded-tx"></div>';
                                 message+= '<div class="well" style="margin-bottom: 0">';
                                     message+= '<div class="row">';
                                         message+= '<div class="col-md-2"></div>';
                                         message+= '<div class="col-md-4">';
-                                            message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
+                                            message+= '<a href="#" class="btn btn-default btn-block btn-decode" data-raw="'+raw+'" data-chain="'+chain+'" data-id="decoded-tx">decode</a>';
                                         message+= '</div>';
                                         message+= '<div class="col-md-4">';
                                             message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
@@ -1533,12 +1589,12 @@ var bce = {
                                 }
                                 
                                 message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
-                                message+= '<pre class="hidden" data-raw="'+raw+'" data-chain="'+chain+'"><code></code></pre>';
+                                message+= '<div class="hidden" id="decoded-tx"></div>';
                                 message+= '<div class="well" style="margin-bottom: 0">';
                                     message+= '<div class="row">';
                                         message+= '<div class="col-md-2"></div>';
                                         message+= '<div class="col-md-4">';
-                                            message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
+                                            message+= '<a href="#" class="btn btn-default btn-block btn-decode" data-raw="'+raw+'" data-chain="'+chain+'" data-id="decoded-tx">decode</a>';
                                         message+= '</div>';
                                         message+= '<div class="col-md-4">';
                                             
@@ -1748,11 +1804,12 @@ var bce = {
                                                         var title = 'Raw Transaction';
                                                         var message = '<p>This is the raw transaction - waiting to be sent:</p>';
                                                         message+= '<pre data-chain="'+chain+'"><code>'+raw+'</code></pre>';
+                                                        message+= '<div class="hidden" id="decoded-tx"></div>';
                                                         message+= '<div class="well" style="margin-bottom: 0">';
                                                             message+= '<div class="row">';
                                                                 message+= '<div class="col-md-2"></div>';
                                                                 message+= '<div class="col-md-4">';
-                                                                    message+= '<a href="#" class="btn btn-default btn-block">decode</a>';
+                                                                    message+= '<a href="#" class="btn btn-default btn-block btn-decode" data-raw="'+raw+'" data-chain="'+chain+'" data-id="decoded-tx">decode</a>';
                                                                 message+= '</div>';
                                                                 message+= '<div class="col-md-4">';
                                                                     message+= '<a href="#" class="btn btn-primary btn-block bce-inline-relay">relay</a>';
@@ -1802,6 +1859,71 @@ var bce = {
                     $.fn.blockstrap.core.modal(title, message);
                 }
             });
+        }
+    },
+    tx: {
+        decode: function(rawtx, chain)
+        {
+            var tx_info = {};
+            var bitcoinjs_chain = $.fn.blockstrap.blockchains.key(chain);
+            var network = nwbs.bitcoin.networks[bitcoinjs_chain];
+            tx_info.tx = nwbs.bitcoin.Transaction.fromHex(rawtx);
+            tx_info.network = network;
+            tx_info.format = bce.tx.format(tx_info.tx);
+            tx_info.inputs = bce.tx.input(tx_info.tx);
+            tx_info.outputs = bce.tx.output(tx_info.tx, network);
+            return tx_info;
+        },
+        format: function(tx)
+        {
+            var result = {
+                txid: tx.getId(),
+                version: tx.version,
+                locktime: tx.locktime,
+            };
+            return result;
+        },
+        input: function(tx)
+        {
+            var result = [];
+            tx.ins.forEach(function(input, n){
+                var vin = {
+                    txid: input.hash.reverse().toString('hex'),
+                    n : input.index,
+                    script: nwbs.bitcoin.script.toASM(input.script),
+                    sequence: input.sequence,
+                }
+                result.push(vin);
+            })
+            return result
+        },
+        output: function(tx, network)
+        {
+            var format = function(out, n, network){
+                var vout = {
+                    satoshi: out.value,
+                    value: (1e-8 * out.value).toFixed(8),
+                    n: n,
+                    scriptPubKey: {
+                        asm: nwbs.bitcoin.script.toASM(out.script),
+                        hex: out.script.toString('hex'),
+                        type: nwbs.bitcoin.script.classifyOutput(out.script),
+                        addresses: [],
+                    },
+                };
+                switch(vout.scriptPubKey.type){
+                case 'pubkeyhash':
+                case 'scripthash':
+                    vout.scriptPubKey.addresses.push(nwbs.bitcoin.address.fromOutputScript(out.script, network));
+                    break;
+                }
+                return vout
+            }
+            var result = [];
+            tx.outs.forEach(function(out, n){
+                result.push(format(out, n, network));
+            })
+            return result
         }
     }
 }
