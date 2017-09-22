@@ -617,7 +617,7 @@ var bce = {
                     var html = '<div class="form-group">';
                         html+= '<label for="'+id+'" class="col-sm-5 control-label">';
                         html+= label;
-                        if(button && (button == 'check' || button == 'qr' || button == 'lookup' || button == 'test'))
+                        if(button && (button == 'check' || button == 'qr' || button == 'lookup'))
                         {
                             html+= ' <a href="#" class="btn btn-xs pull-right btn-default btn-'+button+'">'+button+'</a>';
                         }
@@ -838,7 +838,7 @@ var bce = {
                     html+= '<div class="form-section-wrapper live">';
                 
                     html+= bce.html.forms.input('bce-ms-address', 'Multi-Sig Address', 'text', 'The address to check / use ...', false, 'lookup');
-                    html+= bce.html.forms.input('bce-ms-redeem', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
+                    html+= bce.html.forms.input('bce-ms-redeem', 'Redeem Script', 'text', 'For validating keys ...', false);
                     html+= '<br><span class="alert alert-warning alert-live alert-block">waiting for inputs</span><br>';
                     html+= bce.html.forms.input('bce-to-address', 'To Address', 'text', 'Where to send...?');
                     html+= bce.html.forms.input('bce-to-amount', 'Amount', 'text', 'How much to send...?');
@@ -851,7 +851,7 @@ var bce = {
                     html+= '<div class="form-section-wrapper prep hidden">';
                 
                     html+= bce.html.forms.input('bce-ms-address-prep', 'Multi-Sig Address', 'text', 'The address to check / use ...', false, 'lookup');
-                    html+= bce.html.forms.input('bce-ms-redeem-prep', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
+                    html+= bce.html.forms.input('bce-ms-redeem-prep', 'Redeem Script', 'text', 'For validating keys ...', false);
                     html+= '<br><span class="alert alert-warning alert-prep alert-block">waiting for inputs</span><br>';
                     html+= bce.html.forms.input('bce-to-address-prep', 'To Address', 'text', 'Where to send...?');
                     html+= bce.html.forms.input('bce-to-amount-prep', 'Amount', 'text', 'How much to send...?');
@@ -863,7 +863,7 @@ var bce = {
                 
                     html+= '<div class="form-section-wrapper relay hidden">';
                 
-                    html+= bce.html.forms.input('bce-ms-redeem-relay', 'Redeem Script', 'text', 'For validating keys ...', false, 'test');
+                    html+= bce.html.forms.input('bce-ms-redeem-relay', 'Redeem Script', 'text', 'For validating keys ...', false);
                     html+= bce.html.forms.input('bce-raw-tx-relay', 'Imported Raw TX', 'text', 'Can be decoded but not altered');
                     html+= '<hr>';
                     html+= bce.html.forms.input('bce-private-02-relay', '2nd Private Key', 'text', 'Any one of the three ...');
