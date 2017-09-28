@@ -22,7 +22,3 @@ The blockchains currently supported include:
 The APIs currently supported include:
 
 * BlockCypher
-
-### Caveats
-
-This repo currently does not stand-alone as certain style sheets and JS files are still located within [BCE](https://github.com/Neuroware-IO/bceasia) repo. This is a work in progress project currently aimed at supporting the [online version](http://bce.asia/toolbox/), which willeventually be updated to standalone.
